@@ -62,6 +62,11 @@
       (doto (:out @conn)
          (.writeDouble (int i))))
 
+(defn -write-float [conn i]
+      (println (str "-> FLOAT: " i))
+      (doto (:out @conn)
+         (.writeFloat (int i))))
+
 (defn -write-string16 [conn s]
       (-write-short conn (count s))
       (println (str "-> STRING: " s))
@@ -154,6 +159,14 @@
 (defn -read-bool [conn]
    (let [b (.readBoolean (:in @conn))]
      b))
+
+(defn -read-double [conn]
+   (let [i (.readDouble (:in @conn))]
+     i))
+
+(defn -read-float [conn]
+   (let [i (.readFloat (:in @conn))]
+     i))
 
 (defn -read-string16 [conn]
   (let [str-len (.readShort (:in @conn))
