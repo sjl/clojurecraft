@@ -14,6 +14,7 @@
      0x05 :equipment 
      0x06 :spawnposition
      0x07 :useentity
+     0x08 :updatehealth
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -170,6 +171,10 @@
           (assoc :target (-read-int conn))
           (assoc :leftclick (-read-bool conn))))
 
+(defn read-packet-updatehealth [conn]
+      (-> {}
+          (assoc :health (-read-short conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -186,6 +191,7 @@
             (= packet-type :equipment) (read-packet-equipment conn)
             (= packet-type :spawnposition) (read-packet-spawnposition conn)
             (= packet-type :useentity) (read-packet-useentity conn)
+            (= packet-type :updatehealth) (read-packet-updatehealth conn)
             :else (str "UNKNOWN PACKET TYPE: " packet-id)
             ))
         (println "\n\n\n")))
