@@ -5,14 +5,15 @@
 (def minecraft-local {:name "localhost" :port 25565})
 
 ; Packet Type Maps -----------------------------------------------------------------
-(def packet-ids {
-     :keepalive 0x00
-     :login 0x01
-     :handshake 0x02
-     :chat 0x03
-     :timeupdate 0x04
+(def packet-types {
+     0x00 :keepalive 
+     0x01 :login 
+     0x02 :handshake 
+     0x03 :chat 
+     0x04 :timeupdate 
+     0x05 :equipment 
 })
-(def packet-types (apply assoc {} (mapcat reverse packet-ids)))
+(def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
 (declare conn-handler)
 
@@ -55,6 +56,11 @@
       (println (str "-> STRING: " s))
       (doto (:out @conn)
          (.writeChars s)))
+
+(defn -write-bool [conn b]
+      (println (str "-> BOOL: " b))
+      (doto (:out @conn)
+         (.writeBoolean b)))
 
 
 ; Writing Packets ------------------------------------------------------------------
@@ -106,6 +112,10 @@
    (let [i (.readLong (:in @conn))]
      i))
 
+(defn -read-short [conn]
+   (let [i (.readShort (:in @conn))]
+     i))
+
 (defn -read-string16 [conn]
   (let [str-len (.readShort (:in @conn))
         s (apply str (repeatedly str-len #(.readChar (:in @conn))))]
@@ -134,6 +144,13 @@
 (defn read-packet-timeupdate [conn]
       (-> {}
           (assoc :time (-read-long conn))))
+
+(defn read-packet-equipment [conn]
+      (-> {}
+          (assoc :eid (-read-int conn))
+          (assoc :slot (-read-short conn))
+          (assoc :itemid (-read-short conn))
+          (assoc :unknown (-read-short conn))))
 
 
 (defn read-packet [conn packet-id]
