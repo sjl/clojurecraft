@@ -15,6 +15,7 @@
      0x06 :spawnposition
      0x07 :useentity
      0x08 :updatehealth
+     0x09 :respawn
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -88,6 +89,11 @@
 
       (-write-string16 conn message))
 
+(defn write-packet-respawn [conn {world :world}]
+      (-write-byte conn (:respawn packet-ids))
+
+      (-write-bool conn world))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -97,7 +103,9 @@
       (cond
         (= packet-type :keepalive) (write-packet-handshake conn payload)
         (= packet-type :handshake) (write-packet-handshake conn payload)
-        (= packet-type :login) (write-packet-login conn payload)
+        (= packet-type :login)     (write-packet-login conn payload)
+        (= packet-type :chat)      (write-packet-chat conn payload)
+        (= packet-type :respawn)   (write-packet-respawn conn payload)
         )
       (flushc conn))
 
@@ -175,6 +183,10 @@
       (-> {}
           (assoc :health (-read-short conn))))
 
+(defn read-packet-respawn [conn]
+      (-> {}
+          (assoc :world (-read-byte conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -183,15 +195,16 @@
         (println "\n----->")
         (println
           (cond
-            (= packet-type :keepalive) (read-packet-keepalive conn)
-            (= packet-type :handshake) (read-packet-handshake conn)
-            (= packet-type :login) (read-packet-login conn)
-            (= packet-type :chat) (read-packet-chat conn)
-            (= packet-type :timeupdate) (read-packet-timeupdate conn)
-            (= packet-type :equipment) (read-packet-equipment conn)
+            (= packet-type :keepalive)     (read-packet-keepalive conn)
+            (= packet-type :handshake)     (read-packet-handshake conn)
+            (= packet-type :login)         (read-packet-login conn)
+            (= packet-type :chat)          (read-packet-chat conn)
+            (= packet-type :timeupdate)    (read-packet-timeupdate conn)
+            (= packet-type :equipment)     (read-packet-equipment conn)
             (= packet-type :spawnposition) (read-packet-spawnposition conn)
-            (= packet-type :useentity) (read-packet-useentity conn)
-            (= packet-type :updatehealth) (read-packet-updatehealth conn)
+            (= packet-type :useentity)     (read-packet-useentity conn)
+            (= packet-type :updatehealth)  (read-packet-updatehealth conn)
+            (= packet-type :respawn)       (read-packet-respawn conn)
             :else (str "UNKNOWN PACKET TYPE: " packet-id)
             ))
         (println "\n\n\n")))
