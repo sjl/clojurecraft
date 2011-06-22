@@ -106,7 +106,7 @@
     s))
 
 
-; Handling Packets -----------------------------------------------------------------
+; Reading Packets ------------------------------------------------------------------
 (defn read-packet-keepalive [conn]
       (println "OMG got a keepalive")
       nil)
@@ -138,7 +138,7 @@
         (println "\n\n\n")))
 
 
-; Handling Wrappers ----------------------------------------------------------------
+; Reading Wrappers -----------------------------------------------------------------
 (defn login [conn]
     ; Send handshake
     (write-packet conn :handshake {:username "timmy"})
