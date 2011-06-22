@@ -164,6 +164,7 @@
             (= packet-type :login) (read-packet-login conn)
             (= packet-type :chat) (read-packet-chat conn)
             (= packet-type :timeupdate) (read-packet-timeupdate conn)
+            (= packet-type :equipment) (read-packet-equipment conn)
             :else (str "UNKNOWN PACKET TYPE: " packet-id)
             ))
         (println "\n\n\n")))
