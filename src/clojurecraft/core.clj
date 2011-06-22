@@ -248,8 +248,8 @@
 (defn read-packet-playerpositionlook [conn]
       (-> {}
           (assoc :x (-read-double conn))
-          (assoc :y (-read-double conn))
           (assoc :stance (-read-double conn))
+          (assoc :y (-read-double conn))
           (assoc :z (-read-double conn))
           (assoc :yaw (-read-float conn))
           (assoc :pitch (-read-float conn))
