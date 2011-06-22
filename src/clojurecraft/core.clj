@@ -21,6 +21,7 @@
      0x0C :playerlook
      0x0D :playerpositionlook
      0x0E :playerdigging
+     0x0F :playerblockplacement
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -150,6 +151,17 @@
       (-write-int conn z)
       (-write-byte conn face))
 
+(defn write-packet-playerblockplacement [conn {x :x y :y z :z direction :direction id :id amount :amount damage :damage}]
+      (-write-byte conn (:playerblockplacement packet-ids))
+
+      (-write-int conn x)
+      (-write-byte conn y)
+      (-write-int conn z)
+      (-write-byte conn direction)
+      (-write-short conn id)
+      (-write-byte conn amount)
+      (-write-short conn damage))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -157,16 +169,17 @@
 
 (defn write-packet [conn packet-type payload]
       (cond
-        (= packet-type :keepalive)          (write-packet-handshake conn payload)
-        (= packet-type :handshake)          (write-packet-handshake conn payload)
-        (= packet-type :login)              (write-packet-login conn payload)
-        (= packet-type :chat)               (write-packet-chat conn payload)
-        (= packet-type :respawn)            (write-packet-respawn conn payload)
-        (= packet-type :player)             (write-packet-player conn payload)
-        (= packet-type :playerposition)     (write-packet-playerposition conn payload)
-        (= packet-type :playerlook)         (write-packet-playerlook conn payload)
-        (= packet-type :playerpositionlook) (write-packet-playerpositionlook conn payload)
-        (= packet-type :playerdigging)      (write-packet-playerdigging conn payload)
+        (= packet-type :keepalive)            (write-packet-handshake conn payload)
+        (= packet-type :handshake)            (write-packet-handshake conn payload)
+        (= packet-type :login)                (write-packet-login conn payload)
+        (= packet-type :chat)                 (write-packet-chat conn payload)
+        (= packet-type :respawn)              (write-packet-respawn conn payload)
+        (= packet-type :player)               (write-packet-player conn payload)
+        (= packet-type :playerposition)       (write-packet-playerposition conn payload)
+        (= packet-type :playerlook)           (write-packet-playerlook conn payload)
+        (= packet-type :playerpositionlook)   (write-packet-playerpositionlook conn payload)
+        (= packet-type :playerdigging)        (write-packet-playerdigging conn payload)
+        (= packet-type :playerblockplacement) (write-packet-playerblockplacement conn payload)
         )
       (flushc conn))
 
@@ -274,6 +287,16 @@
           (assoc :z (-read-int conn))
           (assoc :face (-read-byte conn))))
 
+(defn read-packet-playerblockplacement [conn]
+      (-> {}
+          (assoc :x (-read-int conn))
+          (assoc :y (-read-byte conn))
+          (assoc :z (-read-int conn))
+          (assoc :direction (-read-byte conn))
+          (assoc :id (-read-short conn))
+          (assoc :amount (-read-byte conn))
+          (assoc :damage (-read-short conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -282,18 +305,19 @@
         (println "\n----->")
         (println
           (cond
-            (= packet-type :keepalive)          (read-packet-keepalive conn)
-            (= packet-type :handshake)          (read-packet-handshake conn)
-            (= packet-type :login)              (read-packet-login conn)
-            (= packet-type :chat)               (read-packet-chat conn)
-            (= packet-type :timeupdate)         (read-packet-timeupdate conn)
-            (= packet-type :equipment)          (read-packet-equipment conn)
-            (= packet-type :spawnposition)      (read-packet-spawnposition conn)
-            (= packet-type :useentity)          (read-packet-useentity conn)
-            (= packet-type :updatehealth)       (read-packet-updatehealth conn)
-            (= packet-type :respawn)            (read-packet-respawn conn)
-            (= packet-type :playerpositionlook) (read-packet-playerpositionlook conn)
-            (= packet-type :playerdigging)      (read-packet-playerdigging conn)
+            (= packet-type :keepalive)            (read-packet-keepalive conn)
+            (= packet-type :handshake)            (read-packet-handshake conn)
+            (= packet-type :login)                (read-packet-login conn)
+            (= packet-type :chat)                 (read-packet-chat conn)
+            (= packet-type :timeupdate)           (read-packet-timeupdate conn)
+            (= packet-type :equipment)            (read-packet-equipment conn)
+            (= packet-type :spawnposition)        (read-packet-spawnposition conn)
+            (= packet-type :useentity)            (read-packet-useentity conn)
+            (= packet-type :updatehealth)         (read-packet-updatehealth conn)
+            (= packet-type :respawn)              (read-packet-respawn conn)
+            (= packet-type :playerpositionlook)   (read-packet-playerpositionlook conn)
+            (= packet-type :playerdigging)        (read-packet-playerdigging conn)
+            (= packet-type :playerblockplacement) (read-packet-playerblockplacement conn)
             :else (str "UNKNOWN PACKET TYPE: " packet-id)
             ))
         (println "\n\n\n")))
