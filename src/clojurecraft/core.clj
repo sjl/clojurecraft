@@ -10,6 +10,7 @@
      :login 0x01
      :handshake 0x02
      :chat 0x03
+     :timeupdate 0x04
 })
 (def packet-types (apply assoc {} (mapcat reverse packet-ids)))
 
@@ -29,28 +30,28 @@
 
 
 ; Writing Data ---------------------------------------------------------------------
-(defn writ-byte [conn i]
+(defn -write-byte [conn i]
       (println (str "-> PACKET ID: " (Integer/toHexString i)))
       (doto (:out @conn)
          (.writeByte (int i))))
 
-(defn writ-short [conn i]
+(defn -write-short [conn i]
       (println (str "-> SHORT: " i))
       (doto (:out @conn)
          (.writeShort (int i))))
 
-(defn writ-int [conn i]
+(defn -write-int [conn i]
       (println (str "-> INT: " i))
       (doto (:out @conn)
          (.writeInt (int i))))
 
-(defn writ-long [conn i]
+(defn -write-long [conn i]
       (println (str "-> LONG: " i))
       (doto (:out @conn)
          (.writeLong (int i))))
 
-(defn writ-string16 [conn s]
-      (writ-short conn (count s))
+(defn -write-string16 [conn s]
+      (-write-short conn (count s))
       (println (str "-> STRING: " s))
       (doto (:out @conn)
          (.writeChars s)))
@@ -58,20 +59,25 @@
 
 ; Writing Packets ------------------------------------------------------------------
 (defn write-packet-keepalive [conn _]
-      (writ-byte conn (:handshake packet-ids)))
+      (-write-byte conn (:handshake packet-ids)))
 
 (defn write-packet-handshake [conn {username :username}]
-      (writ-byte conn (:handshake packet-ids))
+      (-write-byte conn (:handshake packet-ids))
 
-      (writ-string16 conn username))
+      (-write-string16 conn username))
 
 (defn write-packet-login [conn {version :version, username :username}]
-      (writ-byte conn (:login packet-ids))
+      (-write-byte conn (:login packet-ids))
 
-      (writ-int conn version)
-      (writ-string16 conn username)
-      (writ-long conn 0)
-      (writ-byte conn 0))
+      (-write-int conn version)
+      (-write-string16 conn username)
+      (-write-long conn 0)
+      (-write-byte conn 0))
+
+(defn write-packet-chat [conn {message :message}]
+      (-write-byte conn (:chat packet-ids))
+
+      (-write-string16 conn message))
 
 
 ; Writing Wrappers -----------------------------------------------------------------
@@ -88,19 +94,19 @@
 
 
 ; Reading Data ---------------------------------------------------------------------
-(defn red-byte [conn]
+(defn -read-byte [conn]
    (let [b (.readByte (:in @conn))]
      b))
 
-(defn red-int [conn]
+(defn -read-int [conn]
    (let [i (.readInt (:in @conn))]
      i))
 
-(defn red-long [conn]
+(defn -read-long [conn]
    (let [i (.readLong (:in @conn))]
      i))
 
-(defn red-string16 [conn]
+(defn -read-string16 [conn]
   (let [str-len (.readShort (:in @conn))
         s (apply str (repeatedly str-len #(.readChar (:in @conn))))]
     s))
@@ -108,21 +114,27 @@
 
 ; Reading Packets ------------------------------------------------------------------
 (defn read-packet-keepalive [conn]
-      (println "OMG got a keepalive")
       nil)
 
 (defn read-packet-handshake [conn]
-      (println "OMG got a handshake")
       (-> {}
-          (assoc :hash (red-string16 conn))))
+          (assoc :hash (-read-string16 conn))))
 
 (defn read-packet-login [conn]
-      (println "OMG got a login")
       (-> {}
-          (assoc :eid (red-int conn))
-          (assoc :unknown (red-string16 conn))
-          (assoc :seed (red-long conn))
-          (assoc :dimension (red-byte conn))))
+          (assoc :eid (-read-int conn))
+          (assoc :unknown (-read-string16 conn))
+          (assoc :seed (-read-long conn))
+          (assoc :dimension (-read-byte conn))))
+
+(defn read-packet-chat [conn]
+      (-> {}
+          (assoc :message (-read-string16 conn))))
+
+(defn read-packet-timeupdate [conn]
+      (-> {}
+          (assoc :time (-read-long conn))))
+
 
 (defn read-packet [conn packet-id]
       (let [packet-id (int packet-id)
@@ -133,6 +145,8 @@
             (= packet-type :keepalive) (read-packet-keepalive conn)
             (= packet-type :handshake) (read-packet-handshake conn)
             (= packet-type :login) (read-packet-login conn)
+            (= packet-type :chat) (read-packet-chat conn)
+            (= packet-type :timeupdate) (read-packet-timeupdate conn)
             :else (str "UNKNOWN PACKET TYPE: " packet-id)
             ))
         (println "\n\n\n")))
@@ -144,14 +158,14 @@
     (write-packet conn :handshake {:username "timmy"})
 
     ; Get handshake
-    (let [packet-id (red-byte conn)]
+    (let [packet-id (-read-byte conn)]
       (read-packet conn packet-id))
 
     ; Send login
     (write-packet conn :login {:version 13 :username "timmy"})
 
     ; Get login
-    (let [packet-id (red-byte conn)]
+    (let [packet-id (-read-byte conn)]
       (read-packet conn packet-id)))
 
 (defn conn-handler [conn]
@@ -167,6 +181,6 @@
 
 
 ; REPL -----------------------------------------------------------------------------
-(def server (connect minecraft-local))
+;(def server (connect minecraft-local))
 ;(disconnect server)
 
