@@ -13,6 +13,7 @@
      0x04 :timeupdate 
      0x05 :equipment 
      0x06 :spawnposition
+     0x07 :useentity
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -117,6 +118,10 @@
    (let [i (.readShort (:in @conn))]
      i))
 
+(defn -read-bool [conn]
+   (let [b (.readBoolean (:in @conn))]
+     b))
+
 (defn -read-string16 [conn]
   (let [str-len (.readShort (:in @conn))
         s (apply str (repeatedly str-len #(.readChar (:in @conn))))]
@@ -159,6 +164,12 @@
           (assoc :y (-read-int conn))
           (assoc :z (-read-int conn))))
 
+(defn read-packet-useentity [conn]
+      (-> {}
+          (assoc :user (-read-int conn))
+          (assoc :target (-read-int conn))
+          (assoc :leftclick (-read-bool conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -174,6 +185,7 @@
             (= packet-type :timeupdate) (read-packet-timeupdate conn)
             (= packet-type :equipment) (read-packet-equipment conn)
             (= packet-type :spawnposition) (read-packet-spawnposition conn)
+            (= packet-type :useentity) (read-packet-useentity conn)
             :else (str "UNKNOWN PACKET TYPE: " packet-id)
             ))
         (println "\n\n\n")))
