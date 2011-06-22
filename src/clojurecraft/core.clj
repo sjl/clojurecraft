@@ -160,6 +160,7 @@
           (assoc :z (-read-int conn))))
 
 
+; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
       (let [packet-id (int packet-id)
             packet-type (packet-types packet-id)]
@@ -178,7 +179,7 @@
         (println "\n\n\n")))
 
 
-; Reading Wrappers -----------------------------------------------------------------
+; Connection Handling --------------------------------------------------------------
 (defn login [conn]
     ; Send handshake
     (write-packet conn :handshake {:username "timmy"})
@@ -206,7 +207,7 @@
 
 
 
-; REPL -----------------------------------------------------------------------------
+; Scratch --------------------------------------------------------------------------
 ;(def server (connect minecraft-local))
 ;(disconnect server)
 
