@@ -22,6 +22,7 @@
      0x0D :playerpositionlook
      0x0E :playerdigging
      0x0F :playerblockplacement
+     0x10 :holdingchange
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -162,6 +163,11 @@
       (-write-byte conn amount)
       (-write-short conn damage))
 
+(defn write-packet-holdingchange [conn {slot :slot}]
+      (-write-byte conn (:holdingchange packet-ids))
+
+      (-write-short conn slot))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -180,6 +186,7 @@
         (= packet-type :playerpositionlook)   (write-packet-playerpositionlook conn payload)
         (= packet-type :playerdigging)        (write-packet-playerdigging conn payload)
         (= packet-type :playerblockplacement) (write-packet-playerblockplacement conn payload)
+        (= packet-type :holdingchange)        (write-packet-holdingchange conn payload)
         )
       (flushc conn))
 
@@ -297,6 +304,10 @@
           (assoc :amount (-read-byte conn))
           (assoc :damage (-read-short conn))))
 
+(defn read-packet-holdingchange [conn]
+      (-> {}
+          (assoc :slot (-read-short conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -318,6 +329,7 @@
             (= packet-type :playerpositionlook)   (read-packet-playerpositionlook conn)
             (= packet-type :playerdigging)        (read-packet-playerdigging conn)
             (= packet-type :playerblockplacement) (read-packet-playerblockplacement conn)
+            (= packet-type :holdingchange)        (read-packet-holdingchange conn)
             :else (str "UNKNOWN PACKET TYPE: " packet-id)
             ))
         (println "\n\n\n")))
