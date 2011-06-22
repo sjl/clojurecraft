@@ -20,6 +20,7 @@
      0x0B :playerposition
      0x0C :playerlook
      0x0D :playerpositionlook
+     0x0E :playerdigging
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -140,6 +141,15 @@
       (-write-float conn pitch)
       (-write-bool conn onground))
 
+(defn write-packet-playerdigging [conn {status :status x :x y :y z :z face :face}]
+      (-write-byte conn (:playerdigging packet-ids))
+
+      (-write-byte conn status)
+      (-write-int conn x)
+      (-write-byte conn y)
+      (-write-int conn z)
+      (-write-byte conn face))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -156,6 +166,7 @@
         (= packet-type :playerposition)     (write-packet-playerposition conn payload)
         (= packet-type :playerlook)         (write-packet-playerlook conn payload)
         (= packet-type :playerpositionlook) (write-packet-playerpositionlook conn payload)
+        (= packet-type :playerdigging)      (write-packet-playerdigging conn payload)
         )
       (flushc conn))
 
@@ -255,6 +266,14 @@
           (assoc :pitch (-read-float conn))
           (assoc :onground (-read-bool conn))))
 
+(defn read-packet-playerdigging [conn]
+      (-> {}
+          (assoc :status (-read-byte conn))
+          (assoc :x (-read-int conn))
+          (assoc :y (-read-byte conn))
+          (assoc :z (-read-int conn))
+          (assoc :face (-read-byte conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -274,6 +293,7 @@
             (= packet-type :updatehealth)       (read-packet-updatehealth conn)
             (= packet-type :respawn)            (read-packet-respawn conn)
             (= packet-type :playerpositionlook) (read-packet-playerpositionlook conn)
+            (= packet-type :playerdigging)      (read-packet-playerdigging conn)
             :else (str "UNKNOWN PACKET TYPE: " packet-id)
             ))
         (println "\n\n\n")))
