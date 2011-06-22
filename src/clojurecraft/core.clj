@@ -12,6 +12,7 @@
      0x03 :chat 
      0x04 :timeupdate 
      0x05 :equipment 
+     0x06 :spawnposition
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -152,6 +153,12 @@
           (assoc :itemid (-read-short conn))
           (assoc :unknown (-read-short conn))))
 
+(defn read-packet-spawnposition [conn]
+      (-> {}
+          (assoc :x (-read-int conn))
+          (assoc :y (-read-int conn))
+          (assoc :z (-read-int conn))))
+
 
 (defn read-packet [conn packet-id]
       (let [packet-id (int packet-id)
@@ -165,6 +172,7 @@
             (= packet-type :chat) (read-packet-chat conn)
             (= packet-type :timeupdate) (read-packet-timeupdate conn)
             (= packet-type :equipment) (read-packet-equipment conn)
+            (= packet-type :spawnposition) (read-packet-spawnposition conn)
             :else (str "UNKNOWN PACKET TYPE: " packet-id)
             ))
         (println "\n\n\n")))
