@@ -7,8 +7,9 @@
 ; Packet Type Maps -----------------------------------------------------------------
 (def packet-ids {
      :keepalive 0x00
-     :login 0x01 
-     :handshake 0x02 
+     :login 0x01
+     :handshake 0x02
+     :chat 0x03
 })
 (def packet-types (apply assoc {} (mapcat reverse packet-ids)))
 
@@ -56,6 +57,9 @@
 
 
 ; Writing Packets ------------------------------------------------------------------
+(defn write-packet-keepalive [conn _]
+      (writ-byte conn (:handshake packet-ids)))
+
 (defn write-packet-handshake [conn {username :username}]
       (writ-byte conn (:handshake packet-ids))
 
@@ -76,7 +80,7 @@
 
 (defn write-packet [conn packet-type payload]
       (cond
-        (= packet-type :keepalive) nil
+        (= packet-type :keepalive) (write-packet-handshake conn payload)
         (= packet-type :handshake) (write-packet-handshake conn payload)
         (= packet-type :login) (write-packet-login conn payload)
         )
@@ -103,16 +107,16 @@
 
 
 ; Handling Packets -----------------------------------------------------------------
-(defn handle-packet-keepalive [conn]
+(defn read-packet-keepalive [conn]
       (println "OMG got a keepalive")
       nil)
 
-(defn handle-packet-handshake [conn]
+(defn read-packet-handshake [conn]
       (println "OMG got a handshake")
       (-> {}
           (assoc :hash (red-string16 conn))))
 
-(defn handle-packet-login [conn]
+(defn read-packet-login [conn]
       (println "OMG got a login")
       (-> {}
           (assoc :eid (red-int conn))
@@ -120,15 +124,15 @@
           (assoc :seed (red-long conn))
           (assoc :dimension (red-byte conn))))
 
-(defn handle-packet [conn packet-id]
+(defn read-packet [conn packet-id]
       (let [packet-id (int packet-id)
             packet-type (packet-types packet-id)]
         (println "\n----->")
         (println
           (cond
-            (= packet-type :keepalive) (handle-packet-keepalive conn)
-            (= packet-type :handshake) (handle-packet-handshake conn)
-            (= packet-type :login) (handle-packet-login conn)
+            (= packet-type :keepalive) (read-packet-keepalive conn)
+            (= packet-type :handshake) (read-packet-handshake conn)
+            (= packet-type :login) (read-packet-login conn)
             :else (str "UNKNOWN PACKET TYPE: " packet-id)
             ))
         (println "\n\n\n")))
@@ -141,23 +145,21 @@
 
     ; Get handshake
     (let [packet-id (red-byte conn)]
-      (handle-packet conn packet-id))
+      (read-packet conn packet-id))
 
     ; Send login
     (write-packet conn :login {:version 13 :username "timmy"})
 
     ; Get login
     (let [packet-id (red-byte conn)]
-      (handle-packet conn packet-id))
-
-   )
+      (read-packet conn packet-id)))
 
 (defn conn-handler [conn]
       (println "connecting")
       (login conn)
       (while (nil? (:exit @conn))
         (let [packet-id (.readByte (:in @conn))]
-          (handle-packet conn packet-id)
+          (read-packet conn packet-id)
           ))
       (println "done"))
 
