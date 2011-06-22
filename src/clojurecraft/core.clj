@@ -18,6 +18,7 @@
      0x09 :respawn
      0x0A :player
      0x0B :playerposition
+     0x0C :playerlook
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -118,8 +119,14 @@
       (-write-double conn y)
       (-write-double conn stance)
       (-write-double conn z)
-      (-write-bool conn onground)
-      )
+      (-write-bool conn onground))
+
+(defn write-packet-playerlook [conn {yaw :yaw pitch :pitch onground :onground}]
+      (-write-byte conn (:playerlook packet-ids))
+
+      (-write-float conn yaw)
+      (-write-float conn pitch)
+      (-write-bool conn onground))
 
 
 ; Writing Wrappers -----------------------------------------------------------------
@@ -135,6 +142,7 @@
         (= packet-type :respawn)        (write-packet-respawn conn payload)
         (= packet-type :player)         (write-packet-player conn payload)
         (= packet-type :playerposition) (write-packet-playerposition conn payload)
+        (= packet-type :playerlook)     (write-packet-playerlook conn payload)
         )
       (flushc conn))
 
