@@ -6,13 +6,11 @@
 
 ; Packet Type Maps -----------------------------------------------------------------
 (def packet-ids {
+     :keepalive 0x00
      :login 0x01 
      :handshake 0x02 
 })
-(def packet-types {
-     0x01 :login
-     0x02 :handshake
-})
+(def packet-types (apply assoc {} (mapcat reverse packet-ids)))
 
 (declare conn-handler)
 
@@ -56,11 +54,6 @@
       (doto (:out @conn)
          (.writeChars s)))
 
-(defn writ-chars [conn s]
-      (println (str "-> CHARS: " s))
-      (doto (:out @conn)
-         (.writeChars s)))
-
 
 ; Writing Packets ------------------------------------------------------------------
 (defn write-packet-handshake [conn {username :username}]
@@ -68,7 +61,7 @@
 
       (writ-string16 conn username))
 
-(defn write-packet-login [conn {version :version username :username}]
+(defn write-packet-login [conn {version :version, username :username}]
       (writ-byte conn (:login packet-ids))
 
       (writ-int conn version)
@@ -83,6 +76,7 @@
 
 (defn write-packet [conn packet-type payload]
       (cond
+        (= packet-type :keepalive) nil
         (= packet-type :handshake) (write-packet-handshake conn payload)
         (= packet-type :login) (write-packet-login conn payload)
         )
@@ -109,6 +103,10 @@
 
 
 ; Handling Packets -----------------------------------------------------------------
+(defn handle-packet-keepalive [conn]
+      (println "OMG got a keepalive")
+      nil)
+
 (defn handle-packet-handshake [conn]
       (println "OMG got a handshake")
       (-> {}
@@ -123,12 +121,14 @@
           (assoc :dimension (red-byte conn))))
 
 (defn handle-packet [conn packet-id]
-      (let [packet-id (int packet-id)]
+      (let [packet-id (int packet-id)
+            packet-type (packet-types packet-id)]
         (println "\n----->")
         (println
           (cond
-            (= (packet-types packet-id) :handshake) (handle-packet-handshake conn)
-            (= (packet-types packet-id) :login) (handle-packet-login conn)
+            (= packet-type :keepalive) (handle-packet-keepalive conn)
+            (= packet-type :handshake) (handle-packet-handshake conn)
+            (= packet-type :login) (handle-packet-login conn)
             :else (str "UNKNOWN PACKET TYPE: " packet-id)
             ))
         (println "\n\n\n")))
@@ -166,5 +166,5 @@
 
 ; REPL -----------------------------------------------------------------------------
 (def server (connect minecraft-local))
-(disconnect server)
+;(disconnect server)
 
