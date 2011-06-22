@@ -16,6 +16,8 @@
      0x07 :useentity
      0x08 :updatehealth
      0x09 :respawn
+     0x0A :player
+     0x0B :playerposition
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -54,6 +56,11 @@
       (println (str "-> LONG: " i))
       (doto (:out @conn)
          (.writeLong (int i))))
+
+(defn -write-double [conn i]
+      (println (str "-> DOUBLE: " i))
+      (doto (:out @conn)
+         (.writeDouble (int i))))
 
 (defn -write-string16 [conn s]
       (-write-short conn (count s))
@@ -94,6 +101,21 @@
 
       (-write-bool conn world))
 
+(defn write-packet-player [conn {onground :onground}]
+      (-write-byte conn (:player packet-ids))
+
+      (-write-bool conn onground))
+
+(defn write-packet-playerposition [conn {x :x y :y stance :stance z :z onground :onground}]
+      (-write-byte conn (:playerposition packet-ids))
+
+      (-write-double conn x)
+      (-write-double conn y)
+      (-write-double conn stance)
+      (-write-double conn z)
+      (-write-bool conn onground)
+      )
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -101,11 +123,13 @@
 
 (defn write-packet [conn packet-type payload]
       (cond
-        (= packet-type :keepalive) (write-packet-handshake conn payload)
-        (= packet-type :handshake) (write-packet-handshake conn payload)
-        (= packet-type :login)     (write-packet-login conn payload)
-        (= packet-type :chat)      (write-packet-chat conn payload)
-        (= packet-type :respawn)   (write-packet-respawn conn payload)
+        (= packet-type :keepalive)      (write-packet-handshake conn payload)
+        (= packet-type :handshake)      (write-packet-handshake conn payload)
+        (= packet-type :login)          (write-packet-login conn payload)
+        (= packet-type :chat)           (write-packet-chat conn payload)
+        (= packet-type :respawn)        (write-packet-respawn conn payload)
+        (= packet-type :player)         (write-packet-player conn payload)
+        (= packet-type :playerposition) (write-packet-playerposition conn payload)
         )
       (flushc conn))
 
