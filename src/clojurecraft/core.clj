@@ -46,6 +46,23 @@
   0x32 :prechunk
   0x33 :mapchunk
   0x34 :multiblockchange
+  0x35 :blockchange
+  0x36 :playnoteblock
+  0x3C :explosion
+  0x3D :soundeffect
+  0x46 :newinvalidstate
+  0x47 :thunderbolt
+  0x64 :openwindow
+  0x65 :closewindow
+  0x66 :windowclick
+  0x67 :setslot
+  0x68 :windowitems
+  0x69 :updateprogressbar
+  0x6A :transaction
+  0x82 :updatesign
+  0x83 :mapdata
+  0xC8 :incrementstatistic
+  0xFF :disconnectkick
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
