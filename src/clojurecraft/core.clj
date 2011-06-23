@@ -24,6 +24,8 @@
   0x0F :playerblockplacement
   0x10 :holdingchange
   0x11 :usebed
+  0x12 :animation
+  0x13 :entityaction
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -178,6 +180,18 @@
   (-write-byte conn y)
   (-write-int conn z))
 
+(defn write-packet-animation [conn {eid :eid animate :animate}]
+  (-write-byte conn (:animation packet-ids))
+
+  (-write-int conn eid)
+  (-write-byte conn animate))
+
+(defn write-packet-entityaction [conn {eid :eid action :action}]
+  (-write-byte conn (:entityaction packet-ids))
+
+  (-write-int conn eid)
+  (-write-byte conn action))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -198,6 +212,8 @@
     (= packet-type :playerblockplacement) (write-packet-playerblockplacement conn payload)
     (= packet-type :holdingchange)        (write-packet-holdingchange conn payload)
     (= packet-type :usebed)               (write-packet-usebed conn payload)
+    (= packet-type :animation)            (write-packet-animation conn payload)
+    (= packet-type :entityaction)         (write-packet-entityaction conn payload)
     )
   (flushc conn))
 
@@ -327,6 +343,16 @@
     (assoc :y (-read-byte conn))
     (assoc :z (-read-int conn))))
 
+(defn read-packet-animate [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :animate (-read-byte conn))))
+
+(defn read-packet-entityaction [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :action (-read-byte conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -350,6 +376,8 @@
         (= packet-type :playerblockplacement) (read-packet-playerblockplacement conn)
         (= packet-type :holdingchange)        (read-packet-holdingchange conn)
         (= packet-type :usebed)               (read-packet-usebed conn)
+        (= packet-type :animate)              (read-packet-animate conn)
+        (= packet-type :entityaction)         (read-packet-entityaction conn)
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
     (println "\n\n\n")))
