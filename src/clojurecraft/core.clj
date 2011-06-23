@@ -32,6 +32,7 @@
   0x17 :addobjectvehicle
   0x18 :mobspawn
   0x19 :entitypainting
+  0x1B :stanceupdate
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -222,6 +223,16 @@
   (-write-int conn x)
   (-write-int conn direction))
 
+(defn write-packet-stanceupdate [conn {unknown1 :unknown1 unknown2 :unknown2 unknown3 :unknown3 unknown4 :unknown4 unknown5 :unknown5 unknown6 :unknown6 }]
+  (-write-byte conn (:stanceupdate packet-ids))
+
+  (-write-float conn unknown1)
+  (-write-float conn unknown2)
+  (-write-bool conn unknown3)
+  (-write-bool conn unknown4)
+  (-write-float conn unknown5)
+  (-write-float conn unknown6))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -246,6 +257,7 @@
     (= packet-type :entityaction)         (write-packet-entityaction conn payload)
     (= packet-type :pickupspawn)          (write-packet-pickupspawn conn payload)
     (= packet-type :entitypainting)       (write-packet-entitypainting conn payload)
+    (= packet-type :stanceupdate)         (write-packet-stanceupdate conn payload)
     )
   (flushc conn))
 
@@ -453,6 +465,15 @@
     (assoc :z (-read-int conn))
     (assoc :direction (-read-int conn))))
 
+(defn read-packet-stanceupdate [conn]
+  (-> {}
+    (assoc :unknown1 (-read-float conn))
+    (assoc :unknown2 (-read-float conn))
+    (assoc :unknown3 (-read-bool conn))
+    (assoc :unknown4 (-read-bool conn))
+    (assoc :unknown5 (-read-float conn))
+    (assoc :unknown6 (-read-float conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -484,6 +505,7 @@
         (= packet-type :addobjectvehicle)     (read-packet-addobjectvehicle conn)
         (= packet-type :mobspawn)             (read-packet-mobspawn conn)
         (= packet-type :entitypainting)       (read-packet-entitypainting conn)
+        (= packet-type :stanceupdate)         (read-packet-stanceupdate conn)
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
     (println "\n\n\n")))
