@@ -318,6 +318,15 @@
   ; TODO: Implement this.
   nil)
 
+(defn write-packet-soundeffect [conn {effectid :effectid x :x y :y z :z sounddata :sounddata}]
+  (-write-byte conn (:soundeffect packet-ids))
+
+  (-write-int conn effectid)
+  (-write-int conn x)
+  (-write-byte conn y)
+  (-write-int conn z)
+  (-write-int conn sounddata))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -349,6 +358,7 @@
     :multiblockchange     (write-packet-multiblockchange conn payload)
     :blockchange          (write-packet-blockchange conn payload)
     :explosion            (write-packet-explosion conn payload)
+    :soundeffect          (write-packet-soundeffect conn payload)
 
     )
   (flushc conn))
@@ -691,6 +701,14 @@
            :records (-read-bytearray conn
                                      (* 3 (:recordcount prerecords))))))
 
+(defn read-packet-soundeffect [conn]
+  (assoc {}
+    :effectid (-read-int conn)
+    :x (-read-int conn)
+    :y (-read-byte conn)
+    :z (-read-int conn)
+    :sounddata (-read-int conn)))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -739,6 +757,7 @@
         :blockchange               (read-packet-blockchange conn)
         :playnoteblock             (read-packet-playnoteblock conn)
         :explosion                 (read-packet-explosion conn)
+        :soundeffect               (read-packet-soundeffect conn)
 
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
