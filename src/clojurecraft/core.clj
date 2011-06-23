@@ -349,6 +349,18 @@
 
   (-write-byte conn windowid))
 
+(defn write-packet-windowclick [conn {windowid :windowid slot :slot rightclick :rightclick actionnumber :actionnumber shift :shift itemid :itemid itemcount :itemcount itemuses :itemuses}]
+  (-write-byte conn (:windowclick packet-ids))
+
+  (-write-byte conn windowid)
+  (-write-short conn slot)
+  (-write-byte conn rightclick)
+  (-write-short conn actionnumber)
+  (-write-bool conn shift)
+  (-write-short conn itemid)
+  (-write-byte conn itemcount)
+  (-write-short conn itemuses))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -384,6 +396,7 @@
     :newinvalidstate      (write-packet-newinvalidstate conn payload)
     :openwindow           (write-packet-openwindow conn payload)
     :closewindow          (write-packet-closewindow conn payload)
+    :windowclick          (write-packet-windowclick conn payload)
 
     )
   (flushc conn))
