@@ -314,6 +314,10 @@
   (-write-byte conn blocktype)
   (-write-byte conn blockmetadata))
 
+(defn write-packet-explosion [conn {x :x y :y z :z unknownradius :unknownradius recordcount :recordcount records :records}]
+  ; TODO: Implement this.
+  nil)
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -344,6 +348,7 @@
     :entitymetadata       (write-packet-entitymetadata conn payload)
     :multiblockchange     (write-packet-multiblockchange conn payload)
     :blockchange          (write-packet-blockchange conn payload)
+    :explosion            (write-packet-explosion conn payload)
 
     )
   (flushc conn))
@@ -675,6 +680,17 @@
     :instrumenttype (-read-byte conn)
     :pitch (-read-byte conn)))
 
+(defn read-packet-explosion [conn]
+  (let [prerecords (assoc {}
+                          :x (-read-int conn)
+                          :y (-read-short conn)
+                          :z (-read-int conn)
+                          :unknownradius (-read-byte conn)
+                          :recordcount (-read-byte conn))]
+    (assoc prerecords
+           :records (-read-bytearray conn
+                                     (* 3 (:recordcount prerecords))))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -722,6 +738,7 @@
         :multiblockchange          (read-packet-multiblockchange conn)
         :blockchange               (read-packet-blockchange conn)
         :playnoteblock             (read-packet-playnoteblock conn)
+        :explosion                 (read-packet-explosion conn)
 
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
