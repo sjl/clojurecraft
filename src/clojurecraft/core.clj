@@ -327,6 +327,11 @@
   (-write-int conn z)
   (-write-int conn sounddata))
 
+(defn write-packet-newinvalidstate [conn {reason :reason}]
+  (-write-byte conn (:newinvalidstate packet-ids))
+
+  (-write-byte conn reason))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -359,6 +364,7 @@
     :blockchange          (write-packet-blockchange conn payload)
     :explosion            (write-packet-explosion conn payload)
     :soundeffect          (write-packet-soundeffect conn payload)
+    :newinvalidstate      (write-packet-newinvalidstate conn payload)
 
     )
   (flushc conn))
@@ -709,6 +715,10 @@
     :z (-read-int conn)
     :sounddata (-read-int conn)))
 
+(defn read-packet-newinvalidstate [conn]
+  (assoc {}
+    :reason (-read-byte conn)))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -758,6 +768,7 @@
         :playnoteblock             (read-packet-playnoteblock conn)
         :explosion                 (read-packet-explosion conn)
         :soundeffect               (read-packet-soundeffect conn)
+        :newinvalidstate           (read-packet-newinvalidstate conn)
 
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
