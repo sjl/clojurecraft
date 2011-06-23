@@ -33,6 +33,8 @@
   0x18 :mobspawn
   0x19 :entitypainting
   0x1B :stanceupdate
+  0x1C :entityvelocity
+  0x1D :entitydestroy
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -233,6 +235,14 @@
   (-write-float conn unknown5)
   (-write-float conn unknown6))
 
+(defn write-packet-entityvelocity [conn {eid :eid velocityx :velocityx velocityy :velocityy velocityz :velocityz}]
+  (-write-byte conn (:entityvelocity packet-ids))
+
+  (-write-int conn eid)
+  (-write-short conn velocityx)
+  (-write-short conn velocityy)
+  (-write-short conn velocityz))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -258,6 +268,7 @@
     (= packet-type :pickupspawn)          (write-packet-pickupspawn conn payload)
     (= packet-type :entitypainting)       (write-packet-entitypainting conn payload)
     (= packet-type :stanceupdate)         (write-packet-stanceupdate conn payload)
+    (= packet-type :entityvelocity)       (write-packet-entityvelocity conn payload)
     )
   (flushc conn))
 
@@ -474,6 +485,17 @@
     (assoc :unknown5 (-read-float conn))
     (assoc :unknown6 (-read-float conn))))
 
+(defn read-packet-entityvelocity [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :velocityx (-read-short conn))
+    (assoc :velocityy (-read-short conn))
+    (assoc :velocityz (-read-short conn))))
+
+(defn read-packet-entitydestroy [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -506,6 +528,8 @@
         (= packet-type :mobspawn)             (read-packet-mobspawn conn)
         (= packet-type :entitypainting)       (read-packet-entitypainting conn)
         (= packet-type :stanceupdate)         (read-packet-stanceupdate conn)
+        (= packet-type :entityvelocity)       (read-packet-entityvelocity conn)
+        (= packet-type :entitydestroy)        (read-packet-entitydestroy conn)
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
     (println "\n\n\n")))
