@@ -305,6 +305,15 @@
   (-write-bytearray conn typearray)
   (-write-bytearray conn metadataarray))
 
+(defn write-packet-blockchange [conn {x :x y :y z :z blocktype :blocktype blockmetadata :blockmetadata}]
+  (-write-byte conn (:blockchange packet-ids))
+
+  (-write-int conn x)
+  (-write-byte conn y)
+  (-write-int conn z)
+  (-write-byte conn blocktype)
+  (-write-byte conn blockmetadata))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -334,6 +343,7 @@
     :attachentity         (write-packet-attachentity conn payload)
     :entitymetadata       (write-packet-entitymetadata conn payload)
     :multiblockchange     (write-packet-multiblockchange conn payload)
+    :blockchange          (write-packet-blockchange conn payload)
 
     )
   (flushc conn))
@@ -649,6 +659,22 @@
     :typearray (-read-bytearray conn)
     :metadataarray (-read-bytearray conn)))
 
+(defn read-packet-blockchange [conn]
+  (assoc {}
+    :x (-read-int conn)
+    :y (-read-byte conn)
+    :z (-read-int conn)
+    :blocktype (-read-byte conn)
+    :blockmetadata (-read-byte conn)))
+
+(defn read-packet-playnoteblock [conn]
+  (assoc {}
+    :x (-read-int conn)
+    :y (-read-short conn)
+    :z (-read-int conn)
+    :instrumenttype (-read-byte conn)
+    :pitch (-read-byte conn)))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -693,7 +719,9 @@
         :entitymetadata            (read-packet-entitymetadata conn)
         :prechunk                  (read-packet-prechunk conn)
         :mapchunk                  (read-packet-mapchunk conn)
-        :multiblockarray           (read-packet-multiblockchange conn)
+        :multiblockchange          (read-packet-multiblockchange conn)
+        :blockchange               (read-packet-blockchange conn)
+        :playnoteblock             (read-packet-playnoteblock conn)
 
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
