@@ -42,6 +42,9 @@
   0x22 :entityteleport
   0x26 :entitystatus
   0x27 :attachentity
+  0x28 :entitymetadata
+  0x32 :prechunk
+  0x33 :mapchunk
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -101,6 +104,10 @@
   (println (str "-> BOOL: " b))
   (doto (:out @conn)
     (.writeBoolean b)))
+
+(defn -write-metadata [conn m]
+  ; TODO: Implement this.
+  nil)
 
 
 ; Writing Packets ------------------------------------------------------------------
@@ -256,6 +263,12 @@
   (-write-int conn eid)
   (-write-int conn vehicleid))
 
+(defn write-packet-entitymetadata [conn {eid :eid metadata :metadata}]
+  (-write-byte conn (:attachentity packet-ids))
+
+  (-write-int conn eid)
+  (-write-metadata conn metadata))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -283,6 +296,7 @@
     (= packet-type :stanceupdate)         (write-packet-stanceupdate conn payload)
     (= packet-type :entityvelocity)       (write-packet-entityvelocity conn payload)
     (= packet-type :attachentity)         (write-packet-attachentity conn payload)
+    (= packet-type :entitymetadata)       (write-packet-entitymetadata conn payload)
 
     )
   (flushc conn))
@@ -292,6 +306,10 @@
 (defn -read-byte [conn]
   (let [b (.readByte (:in @conn))]
     b))
+
+(defn -read-bytearray [conn size]
+  ; TODO: Implement this.
+  nil)
 
 (defn -read-int [conn]
   (let [i (.readInt (:in @conn))]
@@ -556,6 +574,31 @@
     (assoc :eid (-read-int conn))
     (assoc :vehicleid (-read-int conn))))
 
+(defn read-packet-entitymetadata [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :metadata (-read-metadata conn))))
+
+(defn read-packet-prechunk [conn]
+  (-> {}
+    (assoc :x (-read-int conn))
+    (assoc :z (-read-int conn))
+    (assoc :mode (-read-bool conn))))
+
+(defn read-packet-mapchunk [conn]
+  (let [predata (-> {}
+                  (assoc :x (-read-int conn))
+                  (assoc :y (-read-short conn))
+                  (assoc :z (-read-int conn))
+                  (assoc :sizex (-read-byte conn))
+                  (assoc :sizey (-read-byte conn))
+                  (assoc :sizez (-read-byte conn))
+                  (assoc :compressedsize (-read-int conn)))]
+    (assoc predata
+           :compresseddata
+           (-read-bytearray conn
+                            (:compressedsize predata)))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -597,6 +640,9 @@
         (= packet-type :entityteleport)            (read-packet-entityteleport conn)
         (= packet-type :entitystatus)              (read-packet-entitystatus conn)
         (= packet-type :attachentity)              (read-packet-attachentity conn)
+        (= packet-type :entitymetadata)            (read-packet-entitymetadata conn)
+        (= packet-type :prechunk)                  (read-packet-prechunk conn)
+        (= packet-type :mapchunk)                  (read-packet-mapchunk conn)
 
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
