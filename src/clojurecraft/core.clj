@@ -45,6 +45,7 @@
   0x28 :entitymetadata
   0x32 :prechunk
   0x33 :mapchunk
+  0x34 :multiblockchange
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -69,10 +70,18 @@
   (doto (:out @conn)
     (.writeByte (int i))))
 
+(defn -write-bytearray [conn ba]
+  ; TODO: Implement this.
+  nil)
+
 (defn -write-short [conn i]
   (println (str "-> SHORT: " i))
   (doto (:out @conn)
     (.writeShort (int i))))
+
+(defn -write-shortarray [conn sa]
+  ; TODO: Implement this.
+  nil)
 
 (defn -write-int [conn i]
   (println (str "-> INT: " i))
@@ -269,6 +278,16 @@
   (-write-int conn eid)
   (-write-metadata conn metadata))
 
+(defn write-packet-multiblockchange [conn {chunkx :chunkx chunkz :chunkz arraysize :arraysize coordinatearray :coordinatearray typearray :typearray metadataarray :metadataarray}]
+  (-write-byte conn (:multiblockchange packet-ids))
+
+  (-write-int conn chunkx)
+  (-write-int conn chunkz)
+  (-write-short conn arraysize)
+  (-write-shortarray conn coordinatearray)
+  (-write-bytearray conn typearray)
+  (-write-bytearray conn metadataarray))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -297,6 +316,7 @@
     (= packet-type :entityvelocity)       (write-packet-entityvelocity conn payload)
     (= packet-type :attachentity)         (write-packet-attachentity conn payload)
     (= packet-type :entitymetadata)       (write-packet-entitymetadata conn payload)
+    (= packet-type :multiblockchange)     (write-packet-multiblockchange conn payload)
 
     )
   (flushc conn))
@@ -322,6 +342,10 @@
 (defn -read-short [conn]
   (let [i (.readShort (:in @conn))]
     i))
+
+(defn -read-shortarray [conn size]
+  ; TODO: Implement this.
+  nil)
 
 (defn -read-bool [conn]
   (let [b (.readBoolean (:in @conn))]
@@ -599,6 +623,15 @@
            (-read-bytearray conn
                             (:compressedsize predata)))))
 
+(defn read-packet-multiblockchange [conn]
+  (-> {}
+    (assoc :chunkx (-read-int conn))
+    (assoc :chunkz (-read-int conn))
+    (assoc :arraysize (-read-short conn))
+    (assoc :coordinatearray (-read-shortarray conn))
+    (assoc :typearray (-read-bytearray conn))
+    (assoc :metadataarray (-read-bytearray conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -643,6 +676,7 @@
         (= packet-type :entitymetadata)            (read-packet-entitymetadata conn)
         (= packet-type :prechunk)                  (read-packet-prechunk conn)
         (= packet-type :mapchunk)                  (read-packet-mapchunk conn)
+        (= packet-type :multiblockarray)           (read-packet-multiblockchange conn)
 
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
