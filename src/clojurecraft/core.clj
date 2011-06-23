@@ -26,6 +26,8 @@
   0x11 :usebed
   0x12 :animation
   0x13 :entityaction
+  0x14 :namedentityspawn
+  0x15 :pickupspawn
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -192,6 +194,20 @@
   (-write-int conn eid)
   (-write-byte conn action))
 
+(defn write-packet-pickupspawn [conn {eid :eid item :item count :count damagedata :damagedata x :x y :y z :z rotation :rotation pitch :pitch roll :roll}]
+  (-write-byte conn (:pickupspawn packet-ids))
+
+  (-write-int conn eid)
+  (-write-short conn item)
+  (-write-byte conn count)
+  (-write-short conn damagedata)
+  (-write-int conn x)
+  (-write-int conn y)
+  (-write-int conn x)
+  (-write-byte conn rotation)
+  (-write-byte int conn pitch)
+  (-write-byte int conn roll))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -214,6 +230,7 @@
     (= packet-type :usebed)               (write-packet-usebed conn payload)
     (= packet-type :animation)            (write-packet-animation conn payload)
     (= packet-type :entityaction)         (write-packet-entityaction conn payload)
+    (= packet-type :pickupspawn)          (write-packet-pickupspawn conn payload)
     )
   (flushc conn))
 
@@ -353,6 +370,30 @@
     (assoc :eid (-read-int conn))
     (assoc :action (-read-byte conn))))
 
+(defn read-packet-namedentityspawn [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :playername (-read-string16 conn))
+    (assoc :x (-read-int conn))
+    (assoc :y (-read-int conn))
+    (assoc :z (-read-int conn))
+    (assoc :rotation (-read-byte conn))
+    (assoc :pitch (-read-byte conn))
+    (assoc :currentitem (-read-short conn))))
+
+(defn read-packet-pickupspawn [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :item (-read-short conn))
+    (assoc :count (-read-byte conn))
+    (assoc :damagedata(-read-short conn))
+    (assoc :x (-read-int conn))
+    (assoc :y (-read-int conn))
+    (assoc :z (-read-int conn))
+    (assoc :rotation (-read-byte conn))
+    (assoc :pitch (-read-byte conn))
+    (assoc :roll (-read-byte conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -378,6 +419,8 @@
         (= packet-type :usebed)               (read-packet-usebed conn)
         (= packet-type :animate)              (read-packet-animate conn)
         (= packet-type :entityaction)         (read-packet-entityaction conn)
+        (= packet-type :namedentityspawn)     (read-packet-namedentityspawn conn)
+        (= packet-type :pickupspawn)          (read-packet-pickupspawn conn)
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
     (println "\n\n\n")))
