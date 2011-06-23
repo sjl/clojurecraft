@@ -374,53 +374,53 @@
   nil)
 
 (defn read-packet-handshake [conn]
-  (assoc
+  (assoc {}
     :hash (-read-string16 conn)))
 
 (defn read-packet-login [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :unknown (-read-string16 conn)
     :seed (-read-long conn)
     :dimension (-read-byte conn)))
 
 (defn read-packet-chat [conn]
-  (assoc
+  (assoc {}
     :message (-read-string16 conn)))
 
 (defn read-packet-timeupdate [conn]
-  (assoc
+  (assoc {}
     :time (-read-long conn)))
 
 (defn read-packet-equipment [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :slot (-read-short conn)
     :itemid (-read-short conn)
     :unknown (-read-short conn)))
 
 (defn read-packet-spawnposition [conn]
-  (assoc
+  (assoc {}
     :x (-read-int conn)
     :y (-read-int conn)
     :z (-read-int conn)))
 
 (defn read-packet-useentity [conn]
-  (assoc
+  (assoc {}
     :user (-read-int conn)
     :target (-read-int conn)
     :leftclick (-read-bool conn)))
 
 (defn read-packet-updatehealth [conn]
-  (assoc
+  (assoc {}
     :health (-read-short conn)))
 
 (defn read-packet-respawn [conn]
-  (assoc
+  (assoc {}
     :world (-read-byte conn)))
 
 (defn read-packet-playerpositionlook [conn]
-  (assoc
+  (assoc {}
     :x (-read-double conn)
     :stance (-read-double conn)
     :y (-read-double conn)
@@ -430,7 +430,7 @@
     :onground (-read-bool conn)))
 
 (defn read-packet-playerdigging [conn]
-  (assoc
+  (assoc {}
     :status (-read-byte conn)
     :x (-read-int conn)
     :y (-read-byte conn)
@@ -438,7 +438,7 @@
     :face (-read-byte conn)))
 
 (defn read-packet-playerblockplacement [conn]
-  (assoc
+  (assoc {}
     :x (-read-int conn)
     :y (-read-byte conn)
     :z (-read-int conn)
@@ -448,11 +448,11 @@
     :damage (-read-short conn)))
 
 (defn read-packet-holdingchange [conn]
-  (assoc
+  (assoc {}
     :slot (-read-short conn)))
 
 (defn read-packet-usebed [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :inbed (-read-byte conn)
     :x (-read-int conn)
@@ -460,17 +460,17 @@
     :z (-read-int conn)))
 
 (defn read-packet-animate [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :animate (-read-byte conn)))
 
 (defn read-packet-entityaction [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :action (-read-byte conn)))
 
 (defn read-packet-namedentityspawn [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :playername (-read-string16 conn)
     :x (-read-int conn)
@@ -481,11 +481,11 @@
     :currentitem (-read-short conn)))
 
 (defn read-packet-pickupspawn [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :item (-read-short conn)
     :count (-read-byte conn)
-    :damagedata(-read-short conn)
+    :damagedata (-read-short conn)
     :x (-read-int conn)
     :y (-read-int conn)
     :z (-read-int conn)
@@ -494,12 +494,12 @@
     :roll (-read-byte conn)))
 
 (defn read-packet-collectitem [conn]
-  (assoc
+  (assoc {}
     :collectedeid (-read-int conn)
     :collectoreid (-read-int conn)))
 
 (defn read-packet-addobjectvehicle [conn]
-  (let [basepacket (assoc
+  (let [basepacket (assoc {}
                      :eid (-read-int conn)
                      :type (-read-byte conn)
                      :x (-read-int conn)
@@ -508,13 +508,13 @@
                      :moar (-read-int conn))]
     (if (< 0 (:moar basepacket))
       basepacket
-      (-> basepacket
+      (assoc basepacket
         :unknownx (-read-int conn)
         :unknowny (-read-int conn)
         :unknownz (-read-int conn)))))
 
 (defn read-packet-mobspawn [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :type (-read-byte conn)
     :x (-read-int conn)
@@ -525,7 +525,7 @@
     :datastream (-read-metadata conn)))
 
 (defn read-packet-entitypainting [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :type (-read-string16 conn)
     :x (-read-int conn)
@@ -534,7 +534,7 @@
     :direction (-read-int conn)))
 
 (defn read-packet-stanceupdate [conn]
-  (assoc
+  (assoc {}
     :unknown1 (-read-float conn)
     :unknown2 (-read-float conn)
     :unknown3 (-read-bool conn)
@@ -543,35 +543,35 @@
     :unknown6 (-read-float conn)))
 
 (defn read-packet-entityvelocity [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :velocityx (-read-short conn)
     :velocityy (-read-short conn)
     :velocityz (-read-short conn)))
 
 (defn read-packet-entitydestroy [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)))
 
 (defn read-packet-entity [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)))
 
 (defn read-packet-entityrelativemove [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :dx (-read-byte conn)
     :dy (-read-byte conn)
     :dz (-read-byte conn)))
 
 (defn read-packet-entitylook [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :yaw (-read-byte conn)
     :pitch (-read-byte conn)))
 
 (defn read-packet-entitylookandrelativemove [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :dx (-read-byte conn)
     :dy (-read-byte conn)
@@ -580,7 +580,7 @@
     :pitch (-read-byte conn)))
 
 (defn read-packet-entityteleport [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :x (-read-int conn)
     :y (-read-int conn)
@@ -589,28 +589,28 @@
     :pitch (-read-byte conn)))
 
 (defn read-packet-entitystatus [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :entitystatus (-read-byte conn)))
 
 (defn read-packet-attachentity [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :vehicleid (-read-int conn)))
 
 (defn read-packet-entitymetadata [conn]
-  (assoc
+  (assoc {}
     :eid (-read-int conn)
     :metadata (-read-metadata conn)))
 
 (defn read-packet-prechunk [conn]
-  (assoc
+  (assoc {}
     :x (-read-int conn)
     :z (-read-int conn)
     :mode (-read-bool conn)))
 
 (defn read-packet-mapchunk [conn]
-  (let [predata (assoc
+  (let [predata (assoc {}
                   :x (-read-int conn)
                   :y (-read-short conn)
                   :z (-read-int conn)
@@ -624,7 +624,7 @@
                             (:compressedsize predata)))))
 
 (defn read-packet-multiblockchange [conn]
-  (assoc
+  (assoc {}
     :chunkx (-read-int conn)
     :chunkz (-read-int conn)
     :arraysize (-read-short conn)
