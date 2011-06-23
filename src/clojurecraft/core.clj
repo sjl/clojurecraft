@@ -39,6 +39,9 @@
   0x1F :entityrelativemove
   0x20 :entitylook
   0x21 :entitylookandrelativemove
+  0x22 :entityteleport
+  0x26 :entitystatus
+  0x27 :attachentity
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -247,6 +250,12 @@
   (-write-short conn velocityy)
   (-write-short conn velocityz))
 
+(defn write-packet-attachentity [conn {eid :eid vehicleid :vehicleid}]
+  (-write-byte conn (:attachentity packet-ids))
+
+  (-write-int conn eid)
+  (-write-int conn vehicleid))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -273,6 +282,8 @@
     (= packet-type :entitypainting)       (write-packet-entitypainting conn payload)
     (= packet-type :stanceupdate)         (write-packet-stanceupdate conn payload)
     (= packet-type :entityvelocity)       (write-packet-entityvelocity conn payload)
+    (= packet-type :attachentity)         (write-packet-attachentity conn payload)
+
     )
   (flushc conn))
 
@@ -526,6 +537,25 @@
     (assoc :yaw (-read-byte conn))
     (assoc :pitch (-read-byte conn))))
 
+(defn read-packet-entityteleport [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :x (-read-int conn))
+    (assoc :y (-read-int conn))
+    (assoc :z (-read-int conn))
+    (assoc :yaw (-read-byte conn))
+    (assoc :pitch (-read-byte conn))))
+
+(defn read-packet-entitystatus [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :entitystatus (-read-byte conn))))
+
+(defn read-packet-attachentity [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :vehicleid (-read-int conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -564,6 +594,9 @@
         (= packet-type :entityrelativemove)        (read-packet-entityrelativemove conn)
         (= packet-type :entitylook)                (read-packet-entitylook conn)
         (= packet-type :entitylookandrelativemove) (read-packet-entitylookandrelativemove conn)
+        (= packet-type :entityteleport)            (read-packet-entityteleport conn)
+        (= packet-type :entitystatus)              (read-packet-entitystatus conn)
+        (= packet-type :attachentity)              (read-packet-attachentity conn)
 
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
