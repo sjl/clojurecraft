@@ -35,6 +35,10 @@
   0x1B :stanceupdate
   0x1C :entityvelocity
   0x1D :entitydestroy
+  0x1E :entity
+  0x1F :entityrelativemove
+  0x20 :entitylook
+  0x21 :entitylookandrelativemove
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -496,6 +500,32 @@
   (-> {}
     (assoc :eid (-read-int conn))))
 
+(defn read-packet-entity [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))))
+
+(defn read-packet-entityrelativemove [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :dx (-read-byte conn))
+    (assoc :dy (-read-byte conn))
+    (assoc :dz (-read-byte conn))))
+
+(defn read-packet-entitylook [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :yaw (-read-byte conn))
+    (assoc :pitch (-read-byte conn))))
+
+(defn read-packet-entitylookandrelativemove [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :dx (-read-byte conn))
+    (assoc :dy (-read-byte conn))
+    (assoc :dz (-read-byte conn))
+    (assoc :yaw (-read-byte conn))
+    (assoc :pitch (-read-byte conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -504,32 +534,37 @@
     (println "\n----->")
     (println
       (cond
-        (= packet-type :keepalive)            (read-packet-keepalive conn)
-        (= packet-type :handshake)            (read-packet-handshake conn)
-        (= packet-type :login)                (read-packet-login conn)
-        (= packet-type :chat)                 (read-packet-chat conn)
-        (= packet-type :timeupdate)           (read-packet-timeupdate conn)
-        (= packet-type :equipment)            (read-packet-equipment conn)
-        (= packet-type :spawnposition)        (read-packet-spawnposition conn)
-        (= packet-type :useentity)            (read-packet-useentity conn)
-        (= packet-type :updatehealth)         (read-packet-updatehealth conn)
-        (= packet-type :respawn)              (read-packet-respawn conn)
-        (= packet-type :playerpositionlook)   (read-packet-playerpositionlook conn)
-        (= packet-type :playerdigging)        (read-packet-playerdigging conn)
-        (= packet-type :playerblockplacement) (read-packet-playerblockplacement conn)
-        (= packet-type :holdingchange)        (read-packet-holdingchange conn)
-        (= packet-type :usebed)               (read-packet-usebed conn)
-        (= packet-type :animate)              (read-packet-animate conn)
-        (= packet-type :entityaction)         (read-packet-entityaction conn)
-        (= packet-type :namedentityspawn)     (read-packet-namedentityspawn conn)
-        (= packet-type :pickupspawn)          (read-packet-pickupspawn conn)
-        (= packet-type :collectitem)          (read-packet-collectitem conn)
-        (= packet-type :addobjectvehicle)     (read-packet-addobjectvehicle conn)
-        (= packet-type :mobspawn)             (read-packet-mobspawn conn)
-        (= packet-type :entitypainting)       (read-packet-entitypainting conn)
-        (= packet-type :stanceupdate)         (read-packet-stanceupdate conn)
-        (= packet-type :entityvelocity)       (read-packet-entityvelocity conn)
-        (= packet-type :entitydestroy)        (read-packet-entitydestroy conn)
+        (= packet-type :keepalive)                 (read-packet-keepalive conn)
+        (= packet-type :handshake)                 (read-packet-handshake conn)
+        (= packet-type :login)                     (read-packet-login conn)
+        (= packet-type :chat)                      (read-packet-chat conn)
+        (= packet-type :timeupdate)                (read-packet-timeupdate conn)
+        (= packet-type :equipment)                 (read-packet-equipment conn)
+        (= packet-type :spawnposition)             (read-packet-spawnposition conn)
+        (= packet-type :useentity)                 (read-packet-useentity conn)
+        (= packet-type :updatehealth)              (read-packet-updatehealth conn)
+        (= packet-type :respawn)                   (read-packet-respawn conn)
+        (= packet-type :playerpositionlook)        (read-packet-playerpositionlook conn)
+        (= packet-type :playerdigging)             (read-packet-playerdigging conn)
+        (= packet-type :playerblockplacement)      (read-packet-playerblockplacement conn)
+        (= packet-type :holdingchange)             (read-packet-holdingchange conn)
+        (= packet-type :usebed)                    (read-packet-usebed conn)
+        (= packet-type :animate)                   (read-packet-animate conn)
+        (= packet-type :entityaction)              (read-packet-entityaction conn)
+        (= packet-type :namedentityspawn)          (read-packet-namedentityspawn conn)
+        (= packet-type :pickupspawn)               (read-packet-pickupspawn conn)
+        (= packet-type :collectitem)               (read-packet-collectitem conn)
+        (= packet-type :addobjectvehicle)          (read-packet-addobjectvehicle conn)
+        (= packet-type :mobspawn)                  (read-packet-mobspawn conn)
+        (= packet-type :entitypainting)            (read-packet-entitypainting conn)
+        (= packet-type :stanceupdate)              (read-packet-stanceupdate conn)
+        (= packet-type :entityvelocity)            (read-packet-entityvelocity conn)
+        (= packet-type :entitydestroy)             (read-packet-entitydestroy conn)
+        (= packet-type :entity)                    (read-packet-entity conn)
+        (= packet-type :entityrelativemove)        (read-packet-entityrelativemove conn)
+        (= packet-type :entitylook)                (read-packet-entitylook conn)
+        (= packet-type :entitylookandrelativemove) (read-packet-entitylookandrelativemove conn)
+
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
     (println "\n\n\n")))
