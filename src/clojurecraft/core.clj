@@ -342,8 +342,12 @@
   (-write-byte conn windowid)
   (-write-byte conn inventorytype)
   (-write-string8 conn windowtitle)
-  (-write-byte conn numberofslots)
-)
+  (-write-byte conn numberofslots))
+
+(defn write-packet-closewindow [conn {windowid :windowid}]
+  (-write-byte conn (:closewindow packet-ids))
+
+  (-write-byte conn windowid))
 
 
 ; Writing Wrappers -----------------------------------------------------------------
@@ -379,6 +383,7 @@
     :soundeffect          (write-packet-soundeffect conn payload)
     :newinvalidstate      (write-packet-newinvalidstate conn payload)
     :openwindow           (write-packet-openwindow conn payload)
+    :closewindow          (write-packet-closewindow conn payload)
 
     )
   (flushc conn))
@@ -752,6 +757,10 @@
     :windowtitle (-read-string8 conn)
     :numberofslots (-read-byte conn)))
 
+(defn read-packet-closewindow [conn]
+  (assoc {}
+    :windowid (-read-byte conn)))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -804,6 +813,7 @@
         :newinvalidstate           (read-packet-newinvalidstate conn)
         :thunderbolt               (read-packet-thunderbolt conn)
         :openwindow                (read-packet-openwindow conn)
+        :closewindow               (read-packet-closewindow conn)
 
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
