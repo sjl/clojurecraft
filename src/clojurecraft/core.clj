@@ -28,6 +28,8 @@
   0x13 :entityaction
   0x14 :namedentityspawn
   0x15 :pickupspawn
+  0x16 :collectitem
+  0x17 :addobjectvehicle
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -394,6 +396,26 @@
     (assoc :pitch (-read-byte conn))
     (assoc :roll (-read-byte conn))))
 
+(defn read-packet-collectitem [conn]
+  (-> {}
+    (assoc :collectedeid (-read-int conn))
+    (assoc :collectoreid (-read-int conn))))
+
+(defn read-packet-addobjectvehicle [conn]
+  (let [basepacket (-> {}
+                     (assoc :eid (-read-int conn))
+                     (assoc :type (-read-byte conn))
+                     (assoc :x (-read-int conn))
+                     (assoc :y (-read-int conn))
+                     (assoc :z (-read-int conn))
+                     (assoc :moar (-read-int conn)))]
+    (if (< 0 (:moar basepacket))
+      basepacket
+      (-> basepacket
+        (assoc :unknownx (-read-int conn))
+        (assoc :unknowny (-read-int conn))
+        (assoc :unknownz (-read-int conn))))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -421,6 +443,8 @@
         (= packet-type :entityaction)         (read-packet-entityaction conn)
         (= packet-type :namedentityspawn)     (read-packet-namedentityspawn conn)
         (= packet-type :pickupspawn)          (read-packet-pickupspawn conn)
+        (= packet-type :collectitem)          (read-packet-collectitem conn)
+        (= packet-type :addobjectvehicle)     (read-packet-addobjectvehicle conn)
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
     (println "\n\n\n")))
