@@ -30,6 +30,8 @@
   0x15 :pickupspawn
   0x16 :collectitem
   0x17 :addobjectvehicle
+  0x18 :mobspawn
+  0x19 :entitypainting
 })
 (def packet-ids (apply assoc {} (mapcat reverse packet-types)))
 
@@ -210,6 +212,16 @@
   (-write-byte int conn pitch)
   (-write-byte int conn roll))
 
+(defn write-packet-entitypainting [conn {eid :eid title :title x :x y :y z :z direction :direction}]
+  (-write-byte conn (:entitypainting packet-ids))
+
+  (-write-int conn eid)
+  (-write-string16 conn title)
+  (-write-int conn x)
+  (-write-int conn y)
+  (-write-int conn x)
+  (-write-int conn direction))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -233,6 +245,7 @@
     (= packet-type :animation)            (write-packet-animation conn payload)
     (= packet-type :entityaction)         (write-packet-entityaction conn payload)
     (= packet-type :pickupspawn)          (write-packet-pickupspawn conn payload)
+    (= packet-type :entitypainting)       (write-packet-entitypainting conn payload)
     )
   (flushc conn))
 
@@ -270,6 +283,10 @@
   (let [str-len (.readShort (:in @conn))
                 s (apply str (repeatedly str-len #(.readChar (:in @conn))))]
     s))
+
+(defn -read-metadata [conn]
+  ; TODO: Implement this.
+  nil)
 
 
 ; Reading Packets ------------------------------------------------------------------
@@ -416,6 +433,26 @@
         (assoc :unknowny (-read-int conn))
         (assoc :unknownz (-read-int conn))))))
 
+(defn read-packet-mobspawn [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :type (-read-byte conn))
+    (assoc :x (-read-int conn))
+    (assoc :y (-read-int conn))
+    (assoc :z (-read-int conn))
+    (assoc :yaw (-read-byte conn))
+    (assoc :pitch (-read-byte conn))
+    (assoc :datastream (-read-metadata conn))))
+
+(defn read-packet-entitypainting [conn]
+  (-> {}
+    (assoc :eid (-read-int conn))
+    (assoc :type (-read-string16 conn))
+    (assoc :x (-read-int conn))
+    (assoc :y (-read-int conn))
+    (assoc :z (-read-int conn))
+    (assoc :direction (-read-int conn))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -445,6 +482,8 @@
         (= packet-type :pickupspawn)          (read-packet-pickupspawn conn)
         (= packet-type :collectitem)          (read-packet-collectitem conn)
         (= packet-type :addobjectvehicle)     (read-packet-addobjectvehicle conn)
+        (= packet-type :mobspawn)             (read-packet-mobspawn conn)
+        (= packet-type :entitypainting)       (read-packet-entitypainting conn)
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
     (println "\n\n\n")))
