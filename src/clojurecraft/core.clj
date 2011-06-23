@@ -120,6 +120,10 @@
   (doto (:out @conn)
     (.writeFloat (int i))))
 
+(defn -write-string8 [conn s]
+  ; TODO: Implement this.
+  nil)
+
 (defn -write-string16 [conn s]
   (-write-short conn (count s))
   (println (str "-> STRING: " s))
@@ -332,6 +336,15 @@
 
   (-write-byte conn reason))
 
+(defn write-packet-openwindow [conn {windowid :windowid inventorytype :inventorytype windowtitle :windowtitle numberofslots :numberofslots}]
+  (-write-byte conn (:openwindow packet-ids))
+
+  (-write-byte conn windowid)
+  (-write-byte conn inventorytype)
+  (-write-string8 conn windowtitle)
+  (-write-byte conn numberofslots)
+)
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -365,6 +378,7 @@
     :explosion            (write-packet-explosion conn payload)
     :soundeffect          (write-packet-soundeffect conn payload)
     :newinvalidstate      (write-packet-newinvalidstate conn payload)
+    :openwindow           (write-packet-openwindow conn payload)
 
     )
   (flushc conn))
@@ -406,6 +420,10 @@
 (defn -read-float [conn]
   (let [i (.readFloat (:in @conn))]
     i))
+
+(defn -read-string8 [conn]
+  ; TODO: Implement this.
+  nil)
 
 (defn -read-string16 [conn]
   (let [str-len (.readShort (:in @conn))
@@ -719,6 +737,21 @@
   (assoc {}
     :reason (-read-byte conn)))
 
+(defn read-packet-thunderbolt [conn]
+  (assoc {}
+    :eid (-read-int conn)
+    :unknown (-read-bool conn)
+    :x (-read-int conn)
+    :y (-read-int conn)
+    :z (-read-int conn)))
+
+(defn read-packet-openwindow [conn]
+  (assoc {}
+    :windowid (-read-byte conn)
+    :inventorytype (-read-byte conn)
+    :windowtitle (-read-string8 conn)
+    :numberofslots (-read-byte conn)))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -769,6 +802,8 @@
         :explosion                 (read-packet-explosion conn)
         :soundeffect               (read-packet-soundeffect conn)
         :newinvalidstate           (read-packet-newinvalidstate conn)
+        :thunderbolt               (read-packet-thunderbolt conn)
+        :openwindow                (read-packet-openwindow conn)
 
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
