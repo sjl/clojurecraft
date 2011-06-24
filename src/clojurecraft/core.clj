@@ -368,6 +368,17 @@
   (-write-short conn actionnumber)
   (-write-bool conn accepted))
 
+(defn write-packet-updatesign [conn {x :x y :y z :z text1 :text1 text2 :text2 text3 :text3 text4 :text4}]
+  (-write-byte conn (:transaction packet-ids))
+
+  (-write-int conn x)
+  (-write-short conn y)
+  (-write-int conn z)
+  (-write-string16 conn text1)
+  (-write-string16 conn text2)
+  (-write-string16 conn text3)
+  (-write-string16 conn text4))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -405,6 +416,7 @@
     :closewindow          (write-packet-closewindow conn payload)
     :windowclick          (write-packet-windowclick conn payload)
     :transaction          (write-packet-transaction conn payload)
+    :updatesign           (write-packet-updatesign conn payload)
 
     )
   (flushc conn))
@@ -816,6 +828,16 @@
     :actionnumber (-read-short conn)
     :accepted (-read-short conn)))
 
+(defn read-packet-updatesign [conn]
+  (assoc {}
+    :x (-read-int conn)
+    :y (-read-short conn)
+    :z (-read-int conn)
+    :text1 (-read-string16 conn)
+    :text2 (-read-string16 conn)
+    :text3 (-read-string16 conn)
+    :text4 (-read-string16 conn)))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -873,6 +895,7 @@
         :windowitems               (read-packet-windowitems conn)
         :updateprogressbar         (read-packet-updateprogressbar conn)
         :transaction               (read-packet-transaction conn)
+        :updatesign                (read-packet-updatesign conn)
 
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
