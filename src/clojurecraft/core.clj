@@ -838,6 +838,13 @@
     :text3 (-read-string16 conn)
     :text4 (-read-string16 conn)))
 
+(defn read-packet-mapdata [conn]
+  (let [pretext (assoc {}
+                       :unknown1 (-read-int conn)
+                       :unknown2 (-read-short conn)
+                       :textlength (-read-int conn))]
+    (assoc pretext :text (-read-bytearray (:textlength pretext)))))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -896,6 +903,7 @@
         :updateprogressbar         (read-packet-updateprogressbar conn)
         :transaction               (read-packet-transaction conn)
         :updatesign                (read-packet-updatesign conn)
+        :mapdata                   (read-packet-mapdata conn)
 
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
