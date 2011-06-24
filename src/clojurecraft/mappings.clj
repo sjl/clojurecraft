@@ -1,0 +1,63 @@
+(ns clojurecraft.mappings)
+
+(def packet-types {
+  0x00 :keepalive
+  0x01 :login
+  0x02 :handshake
+  0x03 :chat
+  0x04 :timeupdate
+  0x05 :equipment
+  0x06 :spawnposition
+  0x07 :useentity
+  0x08 :updatehealth
+  0x09 :respawn
+  0x0A :player
+  0x0B :playerposition
+  0x0C :playerlook
+  0x0D :playerpositionlook
+  0x0E :playerdigging
+  0x0F :playerblockplacement
+  0x10 :holdingchange
+  0x11 :usebed
+  0x12 :animation
+  0x13 :entityaction
+  0x14 :namedentityspawn
+  0x15 :pickupspawn
+  0x16 :collectitem
+  0x17 :addobjectvehicle
+  0x18 :mobspawn
+  0x19 :entitypainting
+  0x1B :stanceupdate
+  0x1C :entityvelocity
+  0x1D :entitydestroy
+  0x1E :entity
+  0x1F :entityrelativemove
+  0x20 :entitylook
+  0x21 :entitylookandrelativemove
+  0x22 :entityteleport
+  0x26 :entitystatus
+  0x27 :attachentity
+  0x28 :entitymetadata
+  0x32 :prechunk
+  0x33 :mapchunk
+  0x34 :multiblockchange
+  0x35 :blockchange
+  0x36 :playnoteblock
+  0x3C :explosion
+  0x3D :soundeffect
+  0x46 :newinvalidstate
+  0x47 :thunderbolt
+  0x64 :openwindow
+  0x65 :closewindow
+  0x66 :windowclick
+  0x67 :setslot
+  0x68 :windowitems
+  0x69 :updateprogressbar
+  0x6A :transaction
+  0x82 :updatesign
+  0x83 :mapdata
+  0xC8 :incrementstatistic
+  0xFF :disconnectkick
+})
+
+(def packet-ids (apply assoc {} (mapcat reverse packet-types)))
