@@ -361,6 +361,13 @@
   (-write-byte conn itemcount)
   (-write-short conn itemuses))
 
+(defn write-packet-transaction [conn {windowid :windowid actionnumber :actionnumber accepted :accepted}]
+  (-write-byte conn (:transaction packet-ids))
+
+  (-write-byte conn windowid)
+  (-write-short conn actionnumber)
+  (-write-bool conn accepted))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -397,6 +404,7 @@
     :openwindow           (write-packet-openwindow conn payload)
     :closewindow          (write-packet-closewindow conn payload)
     :windowclick          (write-packet-windowclick conn payload)
+    :transaction          (write-packet-transaction conn payload)
 
     )
   (flushc conn))
@@ -774,6 +782,40 @@
   (assoc {}
     :windowid (-read-byte conn)))
 
+(defn read-packet-setslot [conn]
+  (assoc {}
+    :windowid (-read-byte conn)
+    :slot (-read-short conn)
+    :itemid (-read-short conn)
+    :itemcount (-read-byte conn)
+    :itemuses (-read-short conn)))
+
+(defn read-packet-windowitems [conn]
+  (letfn [(-read-payload-item []
+             (let [payload (assoc :itemid (-read-short conn))]
+               (if (= (:itemid payload) -1)
+                 payload
+                 (assoc payload
+                        :count (-read-byte conn)
+                        :uses (-read-short conn)))))]
+    (let [prepayload (assoc {}
+                            :windowid (-read-byte conn)
+                            :count (-read-short conn))
+          payload (repeatedly (:count prepayload) -read-payload-item)]
+      (assoc prepayload :payload payload))))
+
+(defn read-packet-updateprogressbar [conn]
+  (assoc {}
+    :windowid (-read-byte conn)
+    :progressbar (-read-short conn)
+    :value (-read-short conn)))
+
+(defn read-packet-transaction [conn]
+  (assoc {}
+    :windowid (-read-byte conn)
+    :actionnumber (-read-short conn)
+    :accepted (-read-short conn)))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -827,6 +869,10 @@
         :thunderbolt               (read-packet-thunderbolt conn)
         :openwindow                (read-packet-openwindow conn)
         :closewindow               (read-packet-closewindow conn)
+        :setslot                   (read-packet-setslot conn)
+        :windowitems               (read-packet-windowitems conn)
+        :updateprogressbar         (read-packet-updateprogressbar conn)
+        :transaction               (read-packet-transaction conn)
 
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
