@@ -12,9 +12,9 @@
 ; Connection Wrappers --------------------------------------------------------------
 (defn connect [server]
   (let [socket (Socket. (:name server) (:port server))
-               in (DataInputStream. (.getInputStream socket))
-               out (DataOutputStream. (.getOutputStream socket))
-               conn (ref {:in in :out out})]
+        in (DataInputStream. (.getInputStream socket))
+        out (DataOutputStream. (.getOutputStream socket))
+        conn (ref {:in in :out out})]
     (doto (Thread. #(conn-handler conn)) (.start))
     conn))
 
