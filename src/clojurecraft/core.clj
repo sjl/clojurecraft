@@ -379,6 +379,17 @@
   (-write-string16 conn text3)
   (-write-string16 conn text4))
 
+(defn write-packet-incrementstatistic [conn {statisticid :statisticid amount :amount}]
+  (-write-byte conn (:incrementstatistic packet-ids))
+
+  (-write-int conn statisticid)
+  (-write-byte conn amount))
+
+(defn write-packet-disconnectkick [conn {reason :reason}]
+  (-write-byte conn (:disconnectkick packet-ids))
+
+  (-write-string16 conn reason))
+
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn flushc [conn]
@@ -417,6 +428,8 @@
     :windowclick          (write-packet-windowclick conn payload)
     :transaction          (write-packet-transaction conn payload)
     :updatesign           (write-packet-updatesign conn payload)
+    :incrementstatistic   (write-packet-incrementstatistic conn payload)
+    :disconnectkick       (write-packet-disconnectkick conn payload)
 
     )
   (flushc conn))
@@ -845,6 +858,15 @@
                        :textlength (-read-int conn))]
     (assoc pretext :text (-read-bytearray (:textlength pretext)))))
 
+(defn read-packet-incrementstatistic [conn]
+  (assoc {}
+    :statisticid (-read-int conn)
+    :amount (-read-byte conn)))
+
+(defn read-packet-disconnectkick [conn]
+  (assoc {}
+    :reason (-read-string16 conn)))
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn packet-id]
@@ -904,6 +926,8 @@
         :transaction               (read-packet-transaction conn)
         :updatesign                (read-packet-updatesign conn)
         :mapdata                   (read-packet-mapdata conn)
+        :incrementstatistic        (read-packet-incrementstatistic conn)
+        :disconnectkick            (read-packet-disconnectkick conn)
 
         :else (str "UNKNOWN PACKET TYPE: " packet-id)
         ))
