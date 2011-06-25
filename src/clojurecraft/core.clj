@@ -46,6 +46,6 @@
 
 
 ; Scratch --------------------------------------------------------------------------
-;(def server (connect minecraft-local))
+(def server (connect minecraft-local))
 ;(disconnect server)
 

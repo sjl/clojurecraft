@@ -7,8 +7,9 @@
     b))
 
 (defn- -read-bytearray [conn size]
-  ; TODO: Implement this.
-  nil)
+  (let [ba (byte-array size)]
+    (.read (:in @conn) ba 0 size)
+    ba))
 
 (defn- -read-int [conn]
   (let [i (.readInt (:in @conn))]
@@ -23,8 +24,7 @@
     i))
 
 (defn- -read-shortarray [conn size]
-  ; TODO: Implement this.
-  nil)
+  (repeatedly size (-read-short conn)))
 
 (defn- -read-bool [conn]
   (let [b (.readBoolean (:in @conn))]
@@ -38,18 +38,32 @@
   (let [i (.readFloat (:in @conn))]
     i))
 
-(defn- -read-string8 [conn]
-  ; TODO: Implement this.
-  nil)
+(defn- -read-string-utf8 [conn]
+  (let [s (.readUTF (:in @conn))]
+    s))
 
-(defn- -read-string16 [conn]
+(defn- -read-string-ucs2 [conn]
   (let [str-len (.readShort (:in @conn))
                 s (apply str (repeatedly str-len #(.readChar (:in @conn))))]
     s))
 
 (defn- -read-metadata [conn]
-  ; TODO: Implement this.
-  nil)
+  (loop [data []]
+    (let [x (-read-byte conn)]
+      (if (= x 127)
+        nil
+        (case (bit-shift-right x 5)
+          0 (recur (conj data (-read-byte conn)))
+          1 (recur (conj data (-read-short conn)))
+          2 (recur (conj data (-read-int conn)))
+          3 (recur (conj data (-read-float conn)))
+          4 (recur (conj data (-read-string-ucs2 conn)))
+          5 (recur (conj data [(-read-short conn)
+                               (-read-byte conn)
+                               (-read-short conn)]))
+          6 (recur (conj data [(-read-int conn)
+                               (-read-int conn)
+                               (-read-int conn)])))))))
 
 
 ; Reading Packets ------------------------------------------------------------------
@@ -58,18 +72,18 @@
 
 (defn- read-packet-handshake [conn]
   (assoc {}
-    :hash (-read-string16 conn)))
+    :hash (-read-string-ucs2 conn)))
 
 (defn- read-packet-login [conn]
   (assoc {}
     :eid (-read-int conn)
-    :unknown (-read-string16 conn)
+    :unknown (-read-string-ucs2 conn)
     :seed (-read-long conn)
     :dimension (-read-byte conn)))
 
 (defn- read-packet-chat [conn]
   (assoc {}
-    :message (-read-string16 conn)))
+    :message (-read-string-ucs2 conn)))
 
 (defn- read-packet-timeupdate [conn]
   (assoc {}
@@ -155,7 +169,7 @@
 (defn- read-packet-namedentityspawn [conn]
   (assoc {}
     :eid (-read-int conn)
-    :playername (-read-string16 conn)
+    :playername (-read-string-ucs2 conn)
     :x (-read-int conn)
     :y (-read-int conn)
     :z (-read-int conn)
@@ -210,7 +224,7 @@
 (defn- read-packet-entitypainting [conn]
   (assoc {}
     :eid (-read-int conn)
-    :type (-read-string16 conn)
+    :type (-read-string-ucs2 conn)
     :x (-read-int conn)
     :y (-read-int conn)
     :z (-read-int conn)
@@ -366,7 +380,7 @@
   (assoc {}
     :windowid (-read-byte conn)
     :inventorytype (-read-byte conn)
-    :windowtitle (-read-string8 conn)
+    :windowtitle (-read-string-utf8 conn)
     :numberofslots (-read-byte conn)))
 
 (defn- read-packet-closewindow [conn]
@@ -383,7 +397,7 @@
 
 (defn- read-packet-windowitems [conn]
   (letfn [(-read-payload-item []
-             (let [payload (assoc :itemid (-read-short conn))]
+             (let [payload (assoc {} :itemid (-read-short conn))]
                (if (= (:itemid payload) -1)
                  payload
                  (assoc payload
@@ -412,10 +426,10 @@
     :x (-read-int conn)
     :y (-read-short conn)
     :z (-read-int conn)
-    :text1 (-read-string16 conn)
-    :text2 (-read-string16 conn)
-    :text3 (-read-string16 conn)
-    :text4 (-read-string16 conn)))
+    :text1 (-read-string-ucs2 conn)
+    :text2 (-read-string-ucs2 conn)
+    :text3 (-read-string-ucs2 conn)
+    :text4 (-read-string-ucs2 conn)))
 
 (defn- read-packet-mapdata [conn]
   (let [pretext (assoc {}
@@ -431,14 +445,14 @@
 
 (defn- read-packet-disconnectkick [conn]
   (assoc {}
-    :reason (-read-string16 conn)))
+    :reason (-read-string-ucs2 conn)))
 
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [conn]
   (let [packet-id (int (-read-byte conn))
         packet-type (packet-types packet-id)]
-    (println "\n----->")
+    (println "\n--PACKET--> " packet-type)
     (println
       (case packet-type
         :keepalive                 (read-packet-keepalive conn)

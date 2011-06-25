@@ -8,8 +8,9 @@
     (.writeByte (int i))))
 
 (defn- -write-bytearray [conn ba]
-  ; TODO: Implement this.
-  nil)
+  (println (str "-> BYTEARRAY: " ba))
+  (doto (:out @conn)
+    (.write ba 0 (count ba))))
 
 (defn- -write-short [conn i]
   (println (str "-> SHORT: " i))
@@ -17,8 +18,7 @@
     (.writeShort (int i))))
 
 (defn- -write-shortarray [conn sa]
-  ; TODO: Implement this.
-  nil)
+  (map #(-write-short %) sa))
 
 (defn- -write-int [conn i]
   (println (str "-> INT: " i))
@@ -40,11 +40,12 @@
   (doto (:out @conn)
     (.writeFloat (int i))))
 
-(defn- -write-string8 [conn s]
-  ; TODO: Implement this.
-  nil)
+(defn- -write-string-utf8 [conn s]
+  (println (str "-> STRING: " s))
+  (doto (:out @conn)
+    (.writeUTF s)))
 
-(defn- -write-string16 [conn s]
+(defn- -write-string-ucs2 [conn s]
   (-write-short conn (count s))
   (println (str "-> STRING: " s))
   (doto (:out @conn)
@@ -67,20 +68,20 @@
 (defn- write-packet-handshake [conn {username :username}]
   (-write-byte conn (:handshake packet-ids))
 
-  (-write-string16 conn username))
+  (-write-string-ucs2 conn username))
 
 (defn- write-packet-login [conn {version :version, username :username}]
   (-write-byte conn (:login packet-ids))
 
   (-write-int conn version)
-  (-write-string16 conn username)
+  (-write-string-ucs2 conn username)
   (-write-long conn 0)
   (-write-byte conn 0))
 
 (defn- write-packet-chat [conn {message :message}]
   (-write-byte conn (:chat packet-ids))
 
-  (-write-string16 conn message))
+  (-write-string-ucs2 conn message))
 
 (defn- write-packet-respawn [conn {world :world}]
   (-write-byte conn (:respawn packet-ids))
@@ -183,7 +184,7 @@
   (-write-byte conn (:entitypainting packet-ids))
 
   (-write-int conn eid)
-  (-write-string16 conn title)
+  (-write-string-ucs2 conn title)
   (-write-int conn x)
   (-write-int conn y)
   (-write-int conn x)
@@ -261,7 +262,7 @@
 
   (-write-byte conn windowid)
   (-write-byte conn inventorytype)
-  (-write-string8 conn windowtitle)
+  (-write-string-utf8 conn windowtitle)
   (-write-byte conn numberofslots))
 
 (defn- write-packet-closewindow [conn {windowid :windowid}]
@@ -294,10 +295,10 @@
   (-write-int conn x)
   (-write-short conn y)
   (-write-int conn z)
-  (-write-string16 conn text1)
-  (-write-string16 conn text2)
-  (-write-string16 conn text3)
-  (-write-string16 conn text4))
+  (-write-string-ucs2 conn text1)
+  (-write-string-ucs2 conn text2)
+  (-write-string-ucs2 conn text3)
+  (-write-string-ucs2 conn text4))
 
 (defn- write-packet-incrementstatistic [conn {statisticid :statisticid amount :amount}]
   (-write-byte conn (:incrementstatistic packet-ids))
@@ -308,7 +309,7 @@
 (defn- write-packet-disconnectkick [conn {reason :reason}]
   (-write-byte conn (:disconnectkick packet-ids))
 
-  (-write-string16 conn reason))
+  (-write-string-ucs2 conn reason))
 
 
 ; Writing Wrappers -----------------------------------------------------------------
