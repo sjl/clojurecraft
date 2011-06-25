@@ -10,24 +10,24 @@
 (declare conn-handler)
 (declare login)
 
-(defn login [conn]
+(defn login [bot]
   ; Send handshake
-  (write-packet conn :handshake {:username "timmy"})
+  (write-packet bot :handshake {:username "timmy"})
 
   ; Get handshake
-  (read-packet conn)
+  (read-packet bot)
 
   ; Send login
-  (write-packet conn :login {:version 13 :username "timmy"})
+  (write-packet bot :login {:version 13 :username "timmy"})
 
   ; Get login
-  (read-packet conn))
+  (read-packet bot))
 
 
 (defn input-handler [bot]
   (let [conn (:connection bot)]
     (while (nil? (:exit @conn))
-      (read-packet conn)))
+      (read-packet bot)))
   (println "done"))
 
 
@@ -39,7 +39,7 @@
         bot {:connection conn}]
 
     (println "connecting")
-    (login conn)
+    (login bot)
     (println "connected and logged in")
 
     (println "starting read handler")
@@ -54,6 +54,6 @@
 
 
 ; Scratch --------------------------------------------------------------------------
-(def bot (connect minecraft-local))
+;(def bot (connect minecraft-local))
 ;(disconnect bot)
 

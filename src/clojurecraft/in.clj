@@ -449,9 +449,10 @@
 
 
 ; Reading Wrappers -----------------------------------------------------------------
-(defn read-packet [conn]
-  (let [packet-id (int (-read-byte conn))
-                  packet-type (packet-types packet-id)]
+(defn read-packet [bot]
+  (let [conn (:connection bot)
+        packet-id (int (-read-byte conn))
+        packet-type (packet-types packet-id)]
     (if (= nil packet-type)
       (println (str "UNKNOWN PACKET TYPE: " (Integer/toHexString packet-id))) 
       (do
