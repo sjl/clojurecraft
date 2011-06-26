@@ -67,385 +67,490 @@
 
 
 ; Reading Packets ------------------------------------------------------------------
-(defn- read-packet-keepalive [conn]
-  nil)
+(defn- read-packet-keepalive [bot]
+  {})
 
-(defn- read-packet-handshake [conn]
-  (assoc {}
-    :hash (-read-string-ucs2 conn)))
+(defn- read-packet-handshake [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :hash (-read-string-ucs2 conn))]
+    payload))
 
-(defn- read-packet-login [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :unknown (-read-string-ucs2 conn)
-    :seed (-read-long conn)
-    :dimension (-read-byte conn)))
+(defn- read-packet-login [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                      :eid (-read-int conn)
+                      :unknown (-read-string-ucs2 conn)
+                      :seed (-read-long conn)
+                      :dimension (-read-byte conn))]
+    payload))
 
-(defn- read-packet-chat [conn]
-  (assoc {}
-    :message (-read-string-ucs2 conn)))
+(defn- read-packet-chat [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :message (-read-string-ucs2 conn))]
+    payload))
 
-(defn- read-packet-timeupdate [conn]
-  (assoc {}
-    :time (-read-long conn)))
+(defn- read-packet-timeupdate [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :time (-read-long conn))]
+    payload))
 
-(defn- read-packet-equipment [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :slot (-read-short conn)
-    :itemid (-read-short conn)
-    :unknown (-read-short conn)))
+(defn- read-packet-equipment [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :slot (-read-short conn)
+                       :itemid (-read-short conn)
+                       :unknown (-read-short conn))]
+    payload))
 
-(defn- read-packet-spawnposition [conn]
-  (assoc {}
-    :x (-read-int conn)
-    :y (-read-int conn)
-    :z (-read-int conn)))
+(defn- read-packet-spawnposition [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :x (-read-int conn)
+                       :y (-read-int conn)
+                       :z (-read-int conn))]
+    payload))
 
-(defn- read-packet-useentity [conn]
-  (assoc {}
-    :user (-read-int conn)
-    :target (-read-int conn)
-    :leftclick (-read-bool conn)))
+(defn- read-packet-useentity [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :user (-read-int conn)
+                       :target (-read-int conn)
+                       :leftclick (-read-bool conn))]
+    payload))
 
-(defn- read-packet-updatehealth [conn]
-  (assoc {}
-    :health (-read-short conn)))
+(defn- read-packet-updatehealth [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :health (-read-short conn))]
+    payload))
 
-(defn- read-packet-respawn [conn]
-  (assoc {}
-    :world (-read-byte conn)))
+(defn- read-packet-respawn [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :world (-read-byte conn))]
+    payload))
 
-(defn- read-packet-playerpositionlook [conn]
-  (assoc {}
-    :x (-read-double conn)
-    :stance (-read-double conn)
-    :y (-read-double conn)
-    :z (-read-double conn)
-    :yaw (-read-float conn)
-    :pitch (-read-float conn)
-    :onground (-read-bool conn)))
+(defn- read-packet-playerpositionlook [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :x (-read-double conn)
+                       :stance (-read-double conn)
+                       :y (-read-double conn)
+                       :z (-read-double conn)
+                       :yaw (-read-float conn)
+                       :pitch (-read-float conn)
+                       :onground (-read-bool conn))]
+    (dosync (alter (:player bot) merge {:location payload}))
+    payload))
 
-(defn- read-packet-playerdigging [conn]
-  (assoc {}
-    :status (-read-byte conn)
-    :x (-read-int conn)
-    :y (-read-byte conn)
-    :z (-read-int conn)
-    :face (-read-byte conn)))
+(defn- read-packet-playerdigging [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :status (-read-byte conn)
+                       :x (-read-int conn)
+                       :y (-read-byte conn)
+                       :z (-read-int conn)
+                       :face (-read-byte conn))]
+    payload))
 
-(defn- read-packet-playerblockplacement [conn]
-  (assoc {}
-    :x (-read-int conn)
-    :y (-read-byte conn)
-    :z (-read-int conn)
-    :direction (-read-byte conn)
-    :id (-read-short conn)
-    :amount (-read-byte conn)
-    :damage (-read-short conn)))
+(defn- read-packet-playerblockplacement [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :x (-read-int conn)
+                       :y (-read-byte conn)
+                       :z (-read-int conn)
+                       :direction (-read-byte conn)
+                       :id (-read-short conn)
+                       :amount (-read-byte conn)
+                       :damage (-read-short conn))]
+    payload))
 
-(defn- read-packet-holdingchange [conn]
-  (assoc {}
-    :slot (-read-short conn)))
+(defn- read-packet-holdingchange [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :slot (-read-short conn))]
+    payload))
 
-(defn- read-packet-usebed [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :inbed (-read-byte conn)
-    :x (-read-int conn)
-    :y (-read-byte conn)
-    :z (-read-int conn)))
+(defn- read-packet-usebed [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :inbed (-read-byte conn)
+                       :x (-read-int conn)
+                       :y (-read-byte conn)
+                       :z (-read-int conn))]
+    payload))
 
-(defn- read-packet-animate [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :animate (-read-byte conn)))
+(defn- read-packet-animate [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :animate (-read-byte conn))]
+    payload))
 
-(defn- read-packet-entityaction [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :action (-read-byte conn)))
+(defn- read-packet-entityaction [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :action (-read-byte conn))]
+    payload))
 
-(defn- read-packet-namedentityspawn [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :playername (-read-string-ucs2 conn)
-    :x (-read-int conn)
-    :y (-read-int conn)
-    :z (-read-int conn)
-    :rotation (-read-byte conn)
-    :pitch (-read-byte conn)
-    :currentitem (-read-short conn)))
+(defn- read-packet-namedentityspawn [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :playername (-read-string-ucs2 conn)
+                       :x (-read-int conn)
+                       :y (-read-int conn)
+                       :z (-read-int conn)
+                       :rotation (-read-byte conn)
+                       :pitch (-read-byte conn)
+                       :currentitem (-read-short conn))]
+    payload))
 
-(defn- read-packet-pickupspawn [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :item (-read-short conn)
-    :count (-read-byte conn)
-    :damagedata (-read-short conn)
-    :x (-read-int conn)
-    :y (-read-int conn)
-    :z (-read-int conn)
-    :rotation (-read-byte conn)
-    :pitch (-read-byte conn)
-    :roll (-read-byte conn)))
+(defn- read-packet-pickupspawn [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :item (-read-short conn)
+                       :count (-read-byte conn)
+                       :damagedata (-read-short conn)
+                       :x (-read-int conn)
+                       :y (-read-int conn)
+                       :z (-read-int conn)
+                       :rotation (-read-byte conn)
+                       :pitch (-read-byte conn)
+                       :roll (-read-byte conn))]
+    payload))
 
-(defn- read-packet-collectitem [conn]
-  (assoc {}
-    :collectedeid (-read-int conn)
-    :collectoreid (-read-int conn)))
+(defn- read-packet-collectitem [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :collectedeid (-read-int conn)
+                       :collectoreid (-read-int conn))]
+    payload))
 
-(defn- read-packet-addobjectvehicle [conn]
-  (let [basepacket (assoc {}
-                     :eid (-read-int conn)
-                     :type (-read-byte conn)
-                     :x (-read-int conn)
-                     :y (-read-int conn)
-                     :z (-read-int conn)
-                     :moar (-read-int conn))]
-    (if (< 0 (:moar basepacket))
-      basepacket
-      (assoc basepacket
-        :unknownx (-read-int conn)
-        :unknowny (-read-int conn)
-        :unknownz (-read-int conn)))))
+(defn- read-packet-addobjectvehicle [bot]
+  (let [conn (:connection bot)
+        payload (let [basepacket (assoc {}
+                                        :eid (-read-int conn)
+                                        :type (-read-byte conn)
+                                        :x (-read-int conn)
+                                        :y (-read-int conn)
+                                        :z (-read-int conn)
+                                        :moar (-read-int conn))]
+                  (if (< 0 (:moar basepacket))
+                    basepacket
+                    (assoc basepacket
+                           :unknownx (-read-int conn)
+                           :unknowny (-read-int conn)
+                           :unknownz (-read-int conn))))]
+    payload))
 
-(defn- read-packet-mobspawn [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :type (-read-byte conn)
-    :x (-read-int conn)
-    :y (-read-int conn)
-    :z (-read-int conn)
-    :yaw (-read-byte conn)
-    :pitch (-read-byte conn)
-    :datastream (-read-metadata conn)))
+(defn- read-packet-mobspawn [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :type (-read-byte conn)
+                       :x (-read-int conn)
+                       :y (-read-int conn)
+                       :z (-read-int conn)
+                       :yaw (-read-byte conn)
+                       :pitch (-read-byte conn)
+                       :datastream (-read-metadata conn))]
+    payload))
 
-(defn- read-packet-entitypainting [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :type (-read-string-ucs2 conn)
-    :x (-read-int conn)
-    :y (-read-int conn)
-    :z (-read-int conn)
-    :direction (-read-int conn)))
+(defn- read-packet-entitypainting [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :type (-read-string-ucs2 conn)
+                       :x (-read-int conn)
+                       :y (-read-int conn)
+                       :z (-read-int conn)
+                       :direction (-read-int conn))]
+    payload))
 
-(defn- read-packet-stanceupdate [conn]
-  (assoc {}
-    :unknown1 (-read-float conn)
-    :unknown2 (-read-float conn)
-    :unknown3 (-read-bool conn)
-    :unknown4 (-read-bool conn)
-    :unknown5 (-read-float conn)
-    :unknown6 (-read-float conn)))
+(defn- read-packet-stanceupdate [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :unknown1 (-read-float conn)
+                       :unknown2 (-read-float conn)
+                       :unknown3 (-read-bool conn)
+                       :unknown4 (-read-bool conn)
+                       :unknown5 (-read-float conn)
+                       :unknown6 (-read-float conn))]
+    payload))
 
-(defn- read-packet-entityvelocity [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :velocityx (-read-short conn)
-    :velocityy (-read-short conn)
-    :velocityz (-read-short conn)))
+(defn- read-packet-entityvelocity [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :velocityx (-read-short conn)
+                       :velocityy (-read-short conn)
+                       :velocityz (-read-short conn))]
+    payload))
 
-(defn- read-packet-entitydestroy [conn]
-  (assoc {}
-    :eid (-read-int conn)))
+(defn- read-packet-entitydestroy [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn))]
+    payload))
 
-(defn- read-packet-entity [conn]
-  (assoc {}
-    :eid (-read-int conn)))
+(defn- read-packet-entity [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn))]
+    payload))
 
-(defn- read-packet-entityrelativemove [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :dx (-read-byte conn)
-    :dy (-read-byte conn)
-    :dz (-read-byte conn)))
+(defn- read-packet-entityrelativemove [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :dx (-read-byte conn)
+                       :dy (-read-byte conn)
+                       :dz (-read-byte conn))]
+    payload))
 
-(defn- read-packet-entitylook [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :yaw (-read-byte conn)
-    :pitch (-read-byte conn)))
+(defn- read-packet-entitylook [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :yaw (-read-byte conn)
+                       :pitch (-read-byte conn))]
+    payload))
 
-(defn- read-packet-entitylookandrelativemove [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :dx (-read-byte conn)
-    :dy (-read-byte conn)
-    :dz (-read-byte conn)
-    :yaw (-read-byte conn)
-    :pitch (-read-byte conn)))
+(defn- read-packet-entitylookandrelativemove [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :dx (-read-byte conn)
+                       :dy (-read-byte conn)
+                       :dz (-read-byte conn)
+                       :yaw (-read-byte conn)
+                       :pitch (-read-byte conn))]
+    payload))
 
-(defn- read-packet-entityteleport [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :x (-read-int conn)
-    :y (-read-int conn)
-    :z (-read-int conn)
-    :yaw (-read-byte conn)
-    :pitch (-read-byte conn)))
+(defn- read-packet-entityteleport [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :x (-read-int conn)
+                       :y (-read-int conn)
+                       :z (-read-int conn)
+                       :yaw (-read-byte conn)
+                       :pitch (-read-byte conn))]
+    payload))
 
-(defn- read-packet-entitystatus [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :entitystatus (-read-byte conn)))
+(defn- read-packet-entitystatus [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :entitystatus (-read-byte conn))]
+    payload))
 
-(defn- read-packet-attachentity [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :vehicleid (-read-int conn)))
+(defn- read-packet-attachentity [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :vehicleid (-read-int conn))]
+    payload))
 
-(defn- read-packet-entitymetadata [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :metadata (-read-metadata conn)))
+(defn- read-packet-entitymetadata [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :metadata (-read-metadata conn))]
+    payload))
 
-(defn- read-packet-prechunk [conn]
-  (assoc {}
-    :x (-read-int conn)
-    :z (-read-int conn)
-    :mode (-read-bool conn)))
+(defn- read-packet-prechunk [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :x (-read-int conn)
+                       :z (-read-int conn)
+                       :mode (-read-bool conn))]
+    payload))
 
-(defn- read-packet-mapchunk [conn]
-  (let [predata (assoc {}
-                  :x (-read-int conn)
-                  :y (-read-short conn)
-                  :z (-read-int conn)
-                  :sizex (-read-byte conn)
-                  :sizey (-read-byte conn)
-                  :sizez (-read-byte conn)
-                  :compressedsize (-read-int conn))]
-    (assoc predata
-           :compresseddata
-           (-read-bytearray conn
-                            (:compressedsize predata)))))
+(defn- read-packet-mapchunk [bot]
+  (let [conn (:connection bot)
+        payload (let [predata (assoc {}
+                                     :x (-read-int conn)
+                                     :y (-read-short conn)
+                                     :z (-read-int conn)
+                                     :sizex (-read-byte conn)
+                                     :sizey (-read-byte conn)
+                                     :sizez (-read-byte conn)
+                                     :compressedsize (-read-int conn))]
+                  (assoc predata
+                         :compresseddata
+                         (-read-bytearray conn
+                                          (:compressedsize predata))))]
+    payload))
 
-(defn- read-packet-multiblockchange [conn]
-  (assoc {}
-    :chunkx (-read-int conn)
-    :chunkz (-read-int conn)
-    :arraysize (-read-short conn)
-    :coordinatearray (-read-shortarray conn)
-    :typearray (-read-bytearray conn)
-    :metadataarray (-read-bytearray conn)))
+(defn- read-packet-multiblockchange [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :chunkx (-read-int conn)
+                       :chunkz (-read-int conn)
+                       :arraysize (-read-short conn)
+                       :coordinatearray (-read-shortarray conn arraysize)
+                       :typearray (-read-bytearray conn arraysize)
+                       :metadataarray (-read-bytearray conn arraysize))]
+    payload))
 
-(defn- read-packet-blockchange [conn]
-  (assoc {}
-    :x (-read-int conn)
-    :y (-read-byte conn)
-    :z (-read-int conn)
-    :blocktype (-read-byte conn)
-    :blockmetadata (-read-byte conn)))
+(defn- read-packet-blockchange [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :x (-read-int conn)
+                       :y (-read-byte conn)
+                       :z (-read-int conn)
+                       :blocktype (-read-byte conn)
+                       :blockmetadata (-read-byte conn))]
+    payload))
 
-(defn- read-packet-playnoteblock [conn]
-  (assoc {}
-    :x (-read-int conn)
-    :y (-read-short conn)
-    :z (-read-int conn)
-    :instrumenttype (-read-byte conn)
-    :pitch (-read-byte conn)))
+(defn- read-packet-playnoteblock [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :x (-read-int conn)
+                       :y (-read-short conn)
+                       :z (-read-int conn)
+                       :instrumenttype (-read-byte conn)
+                       :pitch (-read-byte conn))]
+    payload))
 
-(defn- read-packet-explosion [conn]
-  (let [prerecords (assoc {}
-                          :x (-read-int conn)
-                          :y (-read-short conn)
-                          :z (-read-int conn)
-                          :unknownradius (-read-byte conn)
-                          :recordcount (-read-byte conn))]
-    (assoc prerecords
-           :records (-read-bytearray conn
-                                     (* 3 (:recordcount prerecords))))))
+(defn- read-packet-explosion [bot]
+  (let [conn (:connection bot)
+        payload (let [prerecords (assoc {}
+                                        :x (-read-int conn)
+                                        :y (-read-short conn)
+                                        :z (-read-int conn)
+                                        :unknownradius (-read-byte conn)
+                                        :recordcount (-read-byte conn))]
+                  (assoc prerecords
+                         :records (-read-bytearray conn
+                                                   (* 3 (:recordcount prerecords)))))]
+    payload))
 
-(defn- read-packet-soundeffect [conn]
-  (assoc {}
-    :effectid (-read-int conn)
-    :x (-read-int conn)
-    :y (-read-byte conn)
-    :z (-read-int conn)
-    :sounddata (-read-int conn)))
+(defn- read-packet-soundeffect [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :effectid (-read-int conn)
+                       :x (-read-int conn)
+                       :y (-read-byte conn)
+                       :z (-read-int conn)
+                       :sounddata (-read-int conn))]
+    payload))
 
-(defn- read-packet-newinvalidstate [conn]
-  (assoc {}
-    :reason (-read-byte conn)))
+(defn- read-packet-newinvalidstate [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :reason (-read-byte conn))]
+    payload))
 
-(defn- read-packet-thunderbolt [conn]
-  (assoc {}
-    :eid (-read-int conn)
-    :unknown (-read-bool conn)
-    :x (-read-int conn)
-    :y (-read-int conn)
-    :z (-read-int conn)))
+(defn- read-packet-thunderbolt [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :eid (-read-int conn)
+                       :unknown (-read-bool conn)
+                       :x (-read-int conn)
+                       :y (-read-int conn)
+                       :z (-read-int conn))]
+    payload))
 
-(defn- read-packet-openwindow [conn]
-  (assoc {}
-    :windowid (-read-byte conn)
-    :inventorytype (-read-byte conn)
-    :windowtitle (-read-string-utf8 conn)
-    :numberofslots (-read-byte conn)))
+(defn- read-packet-openwindow [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :windowid (-read-byte conn)
+                       :inventorytype (-read-byte conn)
+                       :windowtitle (-read-string-utf8 conn)
+                       :numberofslots (-read-byte conn))]
+    payload))
 
-(defn- read-packet-closewindow [conn]
-  (assoc {}
-    :windowid (-read-byte conn)))
+(defn- read-packet-closewindow [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :windowid (-read-byte conn))]
+    payload))
 
-(defn- read-packet-setslot [conn]
-  (assoc {}
-    :windowid (-read-byte conn)
-    :slot (-read-short conn)
-    :itemid (-read-short conn)
-    :itemcount (-read-byte conn)
-    :itemuses (-read-short conn)))
+(defn- read-packet-setslot [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :windowid (-read-byte conn)
+                       :slot (-read-short conn)
+                       :itemid (-read-short conn)
+                       :itemcount (-read-byte conn)
+                       :itemuses (-read-short conn))]
+    payload))
 
-(defn- read-packet-windowitems [conn]
-  (letfn [(-read-payload-item []
-             (let [payload (assoc {} :itemid (-read-short conn))]
-               (if (= (:itemid payload) -1)
-                 payload
-                 (assoc payload
-                        :count (-read-byte conn)
-                        :uses (-read-short conn)))))]
-    (let [prepayload (assoc {}
-                            :windowid (-read-byte conn)
-                            :count (-read-short conn))
-          payload (repeatedly (:count prepayload) -read-payload-item)]
-      (assoc prepayload :payload payload))))
+(defn- read-packet-windowitems [bot]
+  (let [conn (:connection bot)
+        payload (letfn [(-read-payload-item []
+                           (let [payload (assoc {} :itemid (-read-short conn))]
+                              (if (= (:itemid payload) -1)
+                                payload
+                                (assoc payload
+                                       :count (-read-byte conn)
+                                       :uses (-read-short conn)))))]
+                  (let [prepay (assoc {}
+                                      :windowid (-read-byte conn)
+                                      :count (-read-short conn))
+                               pay (repeatedly (:count prepay) -read-payload-item)]
+                    (assoc prepay :payload pay)))]
+    payload))
 
-(defn- read-packet-updateprogressbar [conn]
-  (assoc {}
-    :windowid (-read-byte conn)
-    :progressbar (-read-short conn)
-    :value (-read-short conn)))
+(defn- read-packet-updateprogressbar [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :windowid (-read-byte conn)
+                       :progressbar (-read-short conn)
+                       :value (-read-short conn))]
+    payload))
 
-(defn- read-packet-transaction [conn]
-  (assoc {}
-    :windowid (-read-byte conn)
-    :actionnumber (-read-short conn)
-    :accepted (-read-short conn)))
+(defn- read-packet-transaction [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :windowid (-read-byte conn)
+                       :actionnumber (-read-short conn)
+                       :accepted (-read-short conn))]
+    payload))
 
-(defn- read-packet-updatesign [conn]
-  (assoc {}
-    :x (-read-int conn)
-    :y (-read-short conn)
-    :z (-read-int conn)
-    :text1 (-read-string-ucs2 conn)
-    :text2 (-read-string-ucs2 conn)
-    :text3 (-read-string-ucs2 conn)
-    :text4 (-read-string-ucs2 conn)))
+(defn- read-packet-updatesign [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :x (-read-int conn)
+                       :y (-read-short conn)
+                       :z (-read-int conn)
+                       :text1 (-read-string-ucs2 conn)
+                       :text2 (-read-string-ucs2 conn)
+                       :text3 (-read-string-ucs2 conn)
+                       :text4 (-read-string-ucs2 conn))]
+    payload))
 
-(defn- read-packet-mapdata [conn]
-  (let [pretext (assoc {}
-                       :unknown1 (-read-int conn)
-                       :unknown2 (-read-short conn)
-                       :textlength (-read-int conn))]
-    (assoc pretext :text (-read-bytearray (:textlength pretext)))))
+(defn- read-packet-mapdata [bot]
+  (let [conn (:connection bot)
+        payload (let [pretext (assoc {}
+                                     :unknown1 (-read-int conn)
+                                     :unknown2 (-read-short conn)
+                                     :textlength (-read-int conn))]
+                  (assoc pretext :text (-read-bytearray (:textlength pretext))))]
+    payload))
 
-(defn- read-packet-incrementstatistic [conn]
-  (assoc {}
-    :statisticid (-read-int conn)
-    :amount (-read-byte conn)))
+(defn- read-packet-incrementstatistic [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :statisticid (-read-int conn)
+                       :amount (-read-byte conn))]
+    payload))
 
-(defn- read-packet-disconnectkick [conn]
-  (assoc {}
-    :reason (-read-string-ucs2 conn)))
+(defn- read-packet-disconnectkick [bot]
+  (let [conn (:connection bot)
+        payload (assoc {}
+                       :reason (-read-string-ucs2 conn))]
+    payload))
 
 
 ; Reading Wrappers -----------------------------------------------------------------
@@ -454,63 +559,65 @@
         packet-id (int (-read-byte conn))
         packet-type (packet-types packet-id)]
     (if (= nil packet-type)
-      (println (str "UNKNOWN PACKET TYPE: " (Integer/toHexString packet-id))) 
       (do
-        (println "\n--PACKET--> " packet-type)
-        (println
+        (println (str "UNKNOWN PACKET TYPE: " (Integer/toHexString packet-id)))
+        (/ 1 0)) 
+      (do
+        (identity (str "\n--PACKET--> " packet-type))
+        (identity
           (case packet-type
-            :keepalive                 (read-packet-keepalive conn)
-            :handshake                 (read-packet-handshake conn)
-            :login                     (read-packet-login conn)
-            :chat                      (read-packet-chat conn)
-            :timeupdate                (read-packet-timeupdate conn)
-            :equipment                 (read-packet-equipment conn)
-            :spawnposition             (read-packet-spawnposition conn)
-            :useentity                 (read-packet-useentity conn)
-            :updatehealth              (read-packet-updatehealth conn)
-            :respawn                   (read-packet-respawn conn)
-            :playerpositionlook        (read-packet-playerpositionlook conn)
-            :playerdigging             (read-packet-playerdigging conn)
-            :playerblockplacement      (read-packet-playerblockplacement conn)
-            :holdingchange             (read-packet-holdingchange conn)
-            :usebed                    (read-packet-usebed conn)
-            :animate                   (read-packet-animate conn)
-            :entityaction              (read-packet-entityaction conn)
-            :namedentityspawn          (read-packet-namedentityspawn conn)
-            :pickupspawn               (read-packet-pickupspawn conn)
-            :collectitem               (read-packet-collectitem conn)
-            :addobjectvehicle          (read-packet-addobjectvehicle conn)
-            :mobspawn                  (read-packet-mobspawn conn)
-            :entitypainting            (read-packet-entitypainting conn)
-            :stanceupdate              (read-packet-stanceupdate conn)
-            :entityvelocity            (read-packet-entityvelocity conn)
-            :entitydestroy             (read-packet-entitydestroy conn)
-            :entity                    (read-packet-entity conn)
-            :entityrelativemove        (read-packet-entityrelativemove conn)
-            :entitylook                (read-packet-entitylook conn)
-            :entitylookandrelativemove (read-packet-entitylookandrelativemove conn)
-            :entityteleport            (read-packet-entityteleport conn)
-            :entitystatus              (read-packet-entitystatus conn)
-            :attachentity              (read-packet-attachentity conn)
-            :entitymetadata            (read-packet-entitymetadata conn)
-            :prechunk                  (read-packet-prechunk conn)
-            :mapchunk                  (read-packet-mapchunk conn)
-            :multiblockchange          (read-packet-multiblockchange conn)
-            :blockchange               (read-packet-blockchange conn)
-            :playnoteblock             (read-packet-playnoteblock conn)
-            :explosion                 (read-packet-explosion conn)
-            :soundeffect               (read-packet-soundeffect conn)
-            :newinvalidstate           (read-packet-newinvalidstate conn)
-            :thunderbolt               (read-packet-thunderbolt conn)
-            :openwindow                (read-packet-openwindow conn)
-            :closewindow               (read-packet-closewindow conn)
-            :setslot                   (read-packet-setslot conn)
-            :windowitems               (read-packet-windowitems conn)
-            :updateprogressbar         (read-packet-updateprogressbar conn)
-            :transaction               (read-packet-transaction conn)
-            :updatesign                (read-packet-updatesign conn)
-            :mapdata                   (read-packet-mapdata conn)
-            :incrementstatistic        (read-packet-incrementstatistic conn)
-            :disconnectkick            (read-packet-disconnectkick conn)))))
-    (println "\n\n\n")))
+            :keepalive                 (read-packet-keepalive bot)
+            :handshake                 (read-packet-handshake bot)
+            :login                     (read-packet-login bot)
+            :chat                      (read-packet-chat bot)
+            :timeupdate                (read-packet-timeupdate bot)
+            :equipment                 (read-packet-equipment bot)
+            :spawnposition             (read-packet-spawnposition bot)
+            :useentity                 (read-packet-useentity bot)
+            :updatehealth              (read-packet-updatehealth bot)
+            :respawn                   (read-packet-respawn bot)
+            :playerpositionlook        (read-packet-playerpositionlook bot)
+            :playerdigging             (read-packet-playerdigging bot)
+            :playerblockplacement      (read-packet-playerblockplacement bot)
+            :holdingchange             (read-packet-holdingchange bot)
+            :usebed                    (read-packet-usebed bot)
+            :animate                   (read-packet-animate bot)
+            :entityaction              (read-packet-entityaction bot)
+            :namedentityspawn          (read-packet-namedentityspawn bot)
+            :pickupspawn               (read-packet-pickupspawn bot)
+            :collectitem               (read-packet-collectitem bot)
+            :addobjectvehicle          (read-packet-addobjectvehicle bot)
+            :mobspawn                  (read-packet-mobspawn bot)
+            :entitypainting            (read-packet-entitypainting bot)
+            :stanceupdate              (read-packet-stanceupdate bot)
+            :entityvelocity            (read-packet-entityvelocity bot)
+            :entitydestroy             (read-packet-entitydestroy bot)
+            :entity                    (read-packet-entity bot)
+            :entityrelativemove        (read-packet-entityrelativemove bot)
+            :entitylook                (read-packet-entitylook bot)
+            :entitylookandrelativemove (read-packet-entitylookandrelativemove bot)
+            :entityteleport            (read-packet-entityteleport bot)
+            :entitystatus              (read-packet-entitystatus bot)
+            :attachentity              (read-packet-attachentity bot)
+            :entitymetadata            (read-packet-entitymetadata bot)
+            :prechunk                  (read-packet-prechunk bot)
+            :mapchunk                  (read-packet-mapchunk bot)
+            :multiblockchange          (read-packet-multiblockchange bot)
+            :blockchange               (read-packet-blockchange bot)
+            :playnoteblock             (read-packet-playnoteblock bot)
+            :explosion                 (read-packet-explosion bot)
+            :soundeffect               (read-packet-soundeffect bot)
+            :newinvalidstate           (read-packet-newinvalidstate bot)
+            :thunderbolt               (read-packet-thunderbolt bot)
+            :openwindow                (read-packet-openwindow bot)
+            :closewindow               (read-packet-closewindow bot)
+            :setslot                   (read-packet-setslot bot)
+            :windowitems               (read-packet-windowitems bot)
+            :updateprogressbar         (read-packet-updateprogressbar bot)
+            :transaction               (read-packet-transaction bot)
+            :updatesign                (read-packet-updatesign bot)
+            :mapdata                   (read-packet-mapdata bot)
+            :incrementstatistic        (read-packet-incrementstatistic bot)
+            :disconnectkick            (read-packet-disconnectkick bot)))))
+    (identity "\n\n\n")))
 

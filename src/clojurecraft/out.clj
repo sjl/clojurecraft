@@ -3,17 +3,14 @@
 
 ; Writing Data ---------------------------------------------------------------------
 (defn- -write-byte [conn i]
-  (println (str "-> PACKET ID: " (Integer/toHexString i)))
   (doto (:out @conn)
     (.writeByte (int i))))
 
 (defn- -write-bytearray [conn ba]
-  (println (str "-> BYTEARRAY: " ba))
   (doto (:out @conn)
     (.write ba 0 (count ba))))
 
 (defn- -write-short [conn i]
-  (println (str "-> SHORT: " i))
   (doto (:out @conn)
     (.writeShort (int i))))
 
@@ -21,38 +18,31 @@
   (map #(-write-short %) sa))
 
 (defn- -write-int [conn i]
-  (println (str "-> INT: " i))
   (doto (:out @conn)
     (.writeInt (int i))))
 
 (defn- -write-long [conn i]
-  (println (str "-> LONG: " i))
   (doto (:out @conn)
     (.writeLong (int i))))
 
 (defn- -write-double [conn i]
-  (println (str "-> DOUBLE: " i))
   (doto (:out @conn)
     (.writeDouble (int i))))
 
 (defn- -write-float [conn i]
-  (println (str "-> FLOAT: " i))
   (doto (:out @conn)
     (.writeFloat (int i))))
 
 (defn- -write-string-utf8 [conn s]
-  (println (str "-> STRING: " s))
   (doto (:out @conn)
     (.writeUTF s)))
 
 (defn- -write-string-ucs2 [conn s]
   (-write-short conn (count s))
-  (println (str "-> STRING: " s))
   (doto (:out @conn)
     (.writeChars s)))
 
 (defn- -write-bool [conn b]
-  (println (str "-> BOOL: " b))
   (doto (:out @conn)
     (.writeBoolean b)))
 
@@ -63,7 +53,7 @@
 
 ; Writing Packets ------------------------------------------------------------------
 (defn- write-packet-keepalive [conn _]
-  (-write-byte conn (:handshake packet-ids)))
+  (-write-byte conn (:keepalive packet-ids)))
 
 (defn- write-packet-handshake [conn {username :username}]
   (-write-byte conn (:handshake packet-ids))
@@ -317,9 +307,11 @@
   (doto (:out @conn) (.flush)))
 
 (defn write-packet [bot packet-type payload]
+  (println (str "<--WRITING-- " packet-type))
+  (println payload)
   (let [conn (:connection bot)]
     (case packet-type
-      :keepalive            (write-packet-handshake conn payload)
+      :keepalive            (write-packet-keepalive conn payload)
       :handshake            (write-packet-handshake conn payload)
       :login                (write-packet-login conn payload)
       :chat                 (write-packet-chat conn payload)
@@ -352,5 +344,6 @@
       :updatesign           (write-packet-updatesign conn payload)
       :incrementstatistic   (write-packet-incrementstatistic conn payload)
       :disconnectkick       (write-packet-disconnectkick conn payload))
-    (flushc conn)))
+    (flushc conn))
+  (println "written\n\n"))
 

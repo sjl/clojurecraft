@@ -3,7 +3,8 @@
   (:use [clojurecraft.in])
   (:use [clojurecraft.out])
   (:import (java.net Socket)
-           (java.io DataOutputStream DataInputStream)))
+           (java.io DataOutputStream DataInputStream)
+           (java.util.concurrent LinkedBlockingQueue)))
 
 (def minecraft-local {:name "localhost" :port 25565})
 
@@ -30,13 +31,33 @@
       (read-packet bot)))
   (println "done"))
 
+(defn location-handler [bot]
+  (let [conn (:connection bot)
+        outqueue (:outqueue bot)]
+    (while (nil? (:exit @conn))
+      (let [player (:player bot)
+            location (:location @player)]
+        (when (not (nil? location))
+          (.put outqueue [:playerpositionlook location]))
+        (Thread/sleep 50)))))
+
+(defn output-handler [bot]
+  (let [conn (:connection bot)
+        outqueue (:outqueue bot)]
+    (while (nil? (:exit @conn))
+      (let [[packet-type, payload] (.take outqueue)]
+        (write-packet bot packet-type payload)))))
+
 
 (defn connect [server]
   (let [socket (Socket. (:name server) (:port server))
         in (DataInputStream. (.getInputStream socket))
         out (DataOutputStream. (.getOutputStream socket))
         conn (ref {:in in :out out})
-        bot {:connection conn}]
+        outqueue (LinkedBlockingQueue.)
+        player (ref {:location nil})
+        world (ref {})
+        bot {:connection conn, :outqueue outqueue, :player player, :world world}]
 
     (println "connecting")
     (login bot)
@@ -44,6 +65,15 @@
 
     (println "starting read handler")
     (doto (Thread. #(input-handler bot)) (.start))
+
+    (println "starting write handler")
+    (doto (Thread. #(output-handler bot)) (.start))
+
+    (println "starting location updating handler")
+    (doto (Thread. #(location-handler bot)) (.start))
+
+    (println "writing initial keepalive packet")
+    (.put outqueue [:keepalive {}])
 
     (println "all systems go, returning bot")
     bot))
@@ -54,6 +84,6 @@
 
 
 ; Scratch --------------------------------------------------------------------------
-;(def bot (connect minecraft-local))
-;(disconnect bot)
+(def bot (connect minecraft-local))
+(disconnect bot)
 
