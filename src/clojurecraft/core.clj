@@ -26,7 +26,8 @@
 
 
 (defn input-handler [bot]
-  (let [conn (:connection bot)]
+  (let [conn (:connection bot)
+        test 1]
     (while (nil? (:exit @conn))
       (read-packet bot)))
   (println "done"))
