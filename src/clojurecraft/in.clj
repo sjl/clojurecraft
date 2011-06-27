@@ -1,5 +1,20 @@
 (ns clojurecraft.in
-  (:use [clojurecraft.mappings]))
+  (:use [clojurecraft.mappings])
+  (:import (java.util.zip Inflater)))
+
+; Bytes ----------------------------------------------------------------------------
+(defn byte-seq [b]
+  (loop [n 0 b b s []]
+    (if (< n 8)
+      (recur (inc n) (bit-shift-right b 1) (conj s (bit-and b 1)))
+      (reverse s))))
+
+(defn top [b]
+  (bit-shift-right (bit-and b 0xf0) 4))
+
+(defn bottom [b]
+  (bit-and b 0x0f))
+
 
 ; Reading Data ---------------------------------------------------------------------
 (defn- -read-byte [conn]
@@ -308,19 +323,55 @@
          :z (-read-int conn)
          :mode (-read-bool conn)))
 
+
+(defn- -parse-nibbles [len data]
+  (loop [i 0
+         nibbles []
+         data data]
+    (if (= i len)
+      [nibbles data]
+      (let [next-byte (get data 0)
+            top-byte (top next-byte) 
+            bottom-byte (bottom next-byte)]
+        (recur (+ i 1)
+               (conj nibbles bottom-byte top-byte)
+               (subvec data 1))))))
+
+(defn- -read-packet-mapchunk-decode [predata data-ba]
+  (let [len (* (:sizex predata) (:sizey predata) (:sizez predata))
+        data (into [] data-ba)
+        block-types (subvec data 0 len)
+        data (subvec data len)]
+    (let [[block-metadata data] (-parse-nibbles len data)
+          [block-light data] (-parse-nibbles len data)
+          [sky-light data] (-parse-nibbles len data)]
+      (map #({:blocktype %1 :blockmeta %2 :blocklight %3 :skylight %4})
+           block-types block-metadata block-light sky-light))))
+
+(defn- -read-packet-mapchunk-chunkdata [conn predata]
+  (let [raw-data (-read-bytearray conn (:compressedsize predata))
+        buffer (byte-array (/ (* 5
+                                 (:sizex predata)
+                                 (:sizey predata)
+                                 (:sizez predata)) 2))
+        decompressor (Inflater.)]
+    (-> decompressor
+      (.setInput raw-data 0 (:compressedsize predata))
+      (.inflate buffer)
+      .end)
+    buffer))
+
 (defn- read-packet-mapchunk [bot conn]
   (let [predata (assoc {}
                        :x (-read-int conn)
                        :y (-read-short conn)
                        :z (-read-int conn)
-                       :sizex (-read-byte conn)
-                       :sizey (-read-byte conn)
-                       :sizez (-read-byte conn)
+                       :sizex (+ 1 (-read-byte conn))
+                       :sizey (+ 1 (-read-byte conn))
+                       :sizez (+ 1 (-read-byte conn))
                        :compressedsize (-read-int conn))]
-    (assoc predata
-           :compresseddata
-           (-read-bytearray conn
-                            (:compressedsize predata)))))
+    (assoc predata :data (-read-packet-mapchunk-decode (-read-packet-mapchunk-chunkdata conn predata)))))
+
 
 (defn- read-packet-multiblockchange [bot conn]
   (assoc {}
