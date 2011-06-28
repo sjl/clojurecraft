@@ -39,7 +39,7 @@
     i))
 
 (defn- -read-shortarray [conn size]
-  (repeatedly size (-read-short conn)))
+  (repeatedly size #(-read-short conn)))
 
 (defn- -read-bool [conn]
   (let [b (.readBoolean (:in @conn))]
@@ -66,19 +66,21 @@
   (loop [data []]
     (let [x (-read-byte conn)]
       (if (= x 127)
-        nil
+        data
         (case (bit-shift-right x 5)
           0 (recur (conj data (-read-byte conn)))
           1 (recur (conj data (-read-short conn)))
           2 (recur (conj data (-read-int conn)))
           3 (recur (conj data (-read-float conn)))
           4 (recur (conj data (-read-string-ucs2 conn)))
-          5 (recur (conj data [(-read-short conn)
-                               (-read-byte conn)
-                               (-read-short conn)]))
-          6 (recur (conj data [(-read-int conn)
-                               (-read-int conn)
-                               (-read-int conn)])))))))
+          5 (recur (conj data (assoc {}
+                                     :id (-read-short conn)
+                                     :count (-read-byte conn)
+                                     :damage (-read-short conn))))
+          6 (recur (conj data (assoc {}
+                                     :i (-read-int conn)
+                                     :j (-read-int conn)
+                                     :k (-read-int conn)))))))))
 
 
 ; Reading Packets ------------------------------------------------------------------
@@ -101,8 +103,10 @@
          :message (-read-string-ucs2 conn)))
 
 (defn- read-packet-timeupdate [bot conn]
-  (assoc {}
-         :time (-read-long conn)))
+  (let [payload (assoc {}
+                       :time (-read-long conn))]
+    (dosync (alter (:world bot) assoc :time (:time payload)))
+    payload))
 
 (defn- read-packet-equipment [bot conn]
   (assoc {}
@@ -173,7 +177,7 @@
          :y (-read-byte conn)
          :z (-read-int conn)))
 
-(defn- read-packet-animate [bot conn]
+(defn- read-packet-animation [bot conn]
   (assoc {}
          :eid (-read-int conn)
          :animate (-read-byte conn)))
@@ -331,9 +335,9 @@
     (if (= i len)
       [nibbles data]
       (let [next-byte (get data 0)
-            top-byte (top next-byte) 
+            top-byte (top next-byte)
             bottom-byte (bottom next-byte)]
-        (recur (+ i 1)
+        (recur (+ i 2)
                (conj nibbles bottom-byte top-byte)
                (subvec data 1))))))
 
@@ -355,10 +359,13 @@
                                  (:sizey predata)
                                  (:sizez predata)) 2))
         decompressor (Inflater.)]
-    (-> decompressor
-      (.setInput raw-data 0 (:compressedsize predata))
-      (.inflate buffer)
-      .end)
+    (println 1)
+    (.setInput decompressor raw-data 0 (:compressedsize predata))
+    (println 2)
+    (.inflate decompressor buffer)
+    (println 3)
+    (.end decompressor)
+    (println 4)
     buffer))
 
 (defn- read-packet-mapchunk [bot conn]
@@ -370,17 +377,19 @@
                        :sizey (+ 1 (-read-byte conn))
                        :sizez (+ 1 (-read-byte conn))
                        :compressedsize (-read-int conn))]
-    (assoc predata :data (-read-packet-mapchunk-decode (-read-packet-mapchunk-chunkdata conn predata)))))
+    (let [decompressed-data (-read-packet-mapchunk-chunkdata conn predata)]
+      (assoc predata :data (-read-packet-mapchunk-decode predata decompressed-data)))))
 
 
 (defn- read-packet-multiblockchange [bot conn]
-  (assoc {}
-         :chunkx (-read-int conn)
-         :chunkz (-read-int conn)
-         :arraysize (-read-short conn)
-         :coordinatearray (-read-shortarray conn arraysize)
-         :typearray (-read-bytearray conn arraysize)
-         :metadataarray (-read-bytearray conn arraysize)))
+  (let [prearrays (assoc {}
+                         :chunkx (-read-int conn)
+                         :chunkz (-read-int conn)
+                         :arraysize (-read-short conn))]
+    (assoc prearrays
+           :coordinatearray (-read-shortarray conn (:arraysize prearrays))
+           :typearray (-read-bytearray conn (:arraysize prearrays))
+           :metadataarray (-read-bytearray conn (:arraysize prearrays)))))
 
 (defn- read-packet-blockchange [bot conn]
   (assoc {}
@@ -441,130 +450,141 @@
          :windowid (-read-byte conn)))
 
 (defn- read-packet-setslot [bot conn]
-  (assoc {}
-         :windowid (-read-byte conn)
-         :slot (-read-short conn)
-         :itemid (-read-short conn)
-         :itemcount (-read-byte conn)
-         :itemuses (-read-short conn)))
+  (let [preiteminfo (assoc {}
+                           :windowid (-read-byte conn)
+                           :slot (-read-short conn)
+                           :itemid (-read-short conn))]
+    (if (= -1 (:itemid preiteminfo))
+      preiteminfo
+      (assoc preiteminfo
+             :itemcount (-read-byte conn)
+             :itemuses (-read-short conn)))))
 
-(defn- -read-packet-windowitems-payloaditem []
+(defn- -read-packet-windowitems-payloaditem [conn]
   (let [payload (assoc {} :itemid (-read-short conn))]
     (if (= (:itemid payload) -1)
       payload
       (assoc payload
-             :count (-read-byte conn)
-             :uses (-read-short conn)))))
+        :count (-read-byte conn)
+        :uses (-read-short conn)))))
 
 (defn- read-packet-windowitems [bot conn]
-  (let [prepay (assoc {}
-                      :windowid (-read-byte conn)
-                      :count (-read-short conn))
-        pay (repeatedly (:count prepay)
-                        -read-packet-windowitems-payloaditem)]
-    (assoc prepay :payload pay)))
+  (let [prepayload (assoc {}
+                     :windowid (-read-byte conn)
+                     :count (-read-short conn))
+        items (repeatedly (:count prepayload)
+                #(-read-packet-windowitems-payloaditem conn))]
+    (println (assoc prepayload :items items))))
 
 (defn- read-packet-updateprogressbar [bot conn]
   (assoc {}
-         :windowid (-read-byte conn)
-         :progressbar (-read-short conn)
-         :value (-read-short conn)))
+    :windowid (-read-byte conn)
+    :progressbar (-read-short conn)
+    :value (-read-short conn)))
 
 (defn- read-packet-transaction [bot conn]
   (assoc {}
-         :windowid (-read-byte conn)
-         :actionnumber (-read-short conn)
-         :accepted (-read-short conn)))
+    :windowid (-read-byte conn)
+    :actionnumber (-read-short conn)
+    :accepted (-read-short conn)))
 
 (defn- read-packet-updatesign [bot conn]
   (assoc {}
-         :x (-read-int conn)
-         :y (-read-short conn)
-         :z (-read-int conn)
-         :text1 (-read-string-ucs2 conn)
-         :text2 (-read-string-ucs2 conn)
-         :text3 (-read-string-ucs2 conn)
-         :text4 (-read-string-ucs2 conn)))
+    :x (-read-int conn)
+    :y (-read-short conn)
+    :z (-read-int conn)
+    :text1 (-read-string-ucs2 conn)
+    :text2 (-read-string-ucs2 conn)
+    :text3 (-read-string-ucs2 conn)
+    :text4 (-read-string-ucs2 conn)))
 
 (defn- read-packet-mapdata [bot conn]
   (let [pretext (assoc {}
-                       :unknown1 (-read-int conn)
-                       :unknown2 (-read-short conn)
-                       :textlength (-read-int conn))]
+                  :unknown1 (-read-int conn)
+                  :unknown2 (-read-short conn)
+                  :textlength (-read-int conn))]
     (assoc pretext :text (-read-bytearray (:textlength pretext)))))
 
 (defn- read-packet-incrementstatistic [bot conn]
   (assoc {}
-         :statisticid (-read-int conn)
-         :amount (-read-byte conn)))
+    :statisticid (-read-int conn)
+    :amount (-read-byte conn)))
 
 (defn- read-packet-disconnectkick [bot conn]
   (assoc {}
-         :reason (-read-string-ucs2 conn)))
+    :reason (-read-string-ucs2 conn)))
 
 
-(def- packet-readers {:keepalive                 read-packet-keepalive
-                      :handshake                 read-packet-handshake
-                      :login                     read-packet-login
-                      :chat                      read-packet-chat
-                      :timeupdate                read-packet-timeupdate
-                      :equipment                 read-packet-equipment
-                      :spawnposition             read-packet-spawnposition
-                      :useentity                 read-packet-useentity
-                      :updatehealth              read-packet-updatehealth
-                      :respawn                   read-packet-respawn
-                      :playerpositionlook        read-packet-playerpositionlook
-                      :playerdigging             read-packet-playerdigging
-                      :playerblockplacement      read-packet-playerblockplacement
-                      :holdingchange             read-packet-holdingchange
-                      :usebed                    read-packet-usebed
-                      :animate                   read-packet-animate
-                      :entityaction              read-packet-entityaction
-                      :namedentityspawn          read-packet-namedentityspawn
-                      :pickupspawn               read-packet-pickupspawn
-                      :collectitem               read-packet-collectitem
-                      :addobjectvehicle          read-packet-addobjectvehicle
-                      :mobspawn                  read-packet-mobspawn
-                      :entitypainting            read-packet-entitypainting
-                      :stanceupdate              read-packet-stanceupdate
-                      :entityvelocity            read-packet-entityvelocity
-                      :entitydestroy             read-packet-entitydestroy
-                      :entity                    read-packet-entity
-                      :entityrelativemove        read-packet-entityrelativemove
-                      :entitylook                read-packet-entitylook
-                      :entitylookandrelativemove read-packet-entitylookandrelativemove
-                      :entityteleport            read-packet-entityteleport
-                      :entitystatus              read-packet-entitystatus
-                      :attachentity              read-packet-attachentity
-                      :entitymetadata            read-packet-entitymetadata
-                      :prechunk                  read-packet-prechunk
-                      :mapchunk                  read-packet-mapchunk
-                      :multiblockchange          read-packet-multiblockchange
-                      :blockchange               read-packet-blockchange
-                      :playnoteblock             read-packet-playnoteblock
-                      :explosion                 read-packet-explosion
-                      :soundeffect               read-packet-soundeffect
-                      :newinvalidstate           read-packet-newinvalidstate
-                      :thunderbolt               read-packet-thunderbolt
-                      :openwindow                read-packet-openwindow
-                      :closewindow               read-packet-closewindow
-                      :setslot                   read-packet-setslot
-                      :windowitems               read-packet-windowitems
-                      :updateprogressbar         read-packet-updateprogressbar
-                      :transaction               read-packet-transaction
-                      :updatesign                read-packet-updatesign
-                      :mapdata                   read-packet-mapdata
-                      :incrementstatistic        read-packet-incrementstatistic
-                      :disconnectkick            read-packet-disconnectkick})
+(def packet-readers {:keepalive                 read-packet-keepalive
+                     :handshake                 read-packet-handshake
+                     :login                     read-packet-login
+                     :chat                      read-packet-chat
+                     :timeupdate                read-packet-timeupdate
+                     :equipment                 read-packet-equipment
+                     :spawnposition             read-packet-spawnposition
+                     :useentity                 read-packet-useentity
+                     :updatehealth              read-packet-updatehealth
+                     :respawn                   read-packet-respawn
+                     :playerpositionlook        read-packet-playerpositionlook
+                     :playerdigging             read-packet-playerdigging
+                     :playerblockplacement      read-packet-playerblockplacement
+                     :holdingchange             read-packet-holdingchange
+                     :usebed                    read-packet-usebed
+                     :animation                 read-packet-animation
+                     :entityaction              read-packet-entityaction
+                     :namedentityspawn          read-packet-namedentityspawn
+                     :pickupspawn               read-packet-pickupspawn
+                     :collectitem               read-packet-collectitem
+                     :addobjectvehicle          read-packet-addobjectvehicle
+                     :mobspawn                  read-packet-mobspawn
+                     :entitypainting            read-packet-entitypainting
+                     :stanceupdate              read-packet-stanceupdate
+                     :entityvelocity            read-packet-entityvelocity
+                     :entitydestroy             read-packet-entitydestroy
+                     :entity                    read-packet-entity
+                     :entityrelativemove        read-packet-entityrelativemove
+                     :entitylook                read-packet-entitylook
+                     :entitylookandrelativemove read-packet-entitylookandrelativemove
+                     :entityteleport            read-packet-entityteleport
+                     :entitystatus              read-packet-entitystatus
+                     :attachentity              read-packet-attachentity
+                     :entitymetadata            read-packet-entitymetadata
+                     :prechunk                  read-packet-prechunk
+                     :mapchunk                  read-packet-mapchunk
+                     :multiblockchange          read-packet-multiblockchange
+                     :blockchange               read-packet-blockchange
+                     :playnoteblock             read-packet-playnoteblock
+                     :explosion                 read-packet-explosion
+                     :soundeffect               read-packet-soundeffect
+                     :newinvalidstate           read-packet-newinvalidstate
+                     :thunderbolt               read-packet-thunderbolt
+                     :openwindow                read-packet-openwindow
+                     :closewindow               read-packet-closewindow
+                     :setslot                   read-packet-setslot
+                     :windowitems               read-packet-windowitems
+                     :updateprogressbar         read-packet-updateprogressbar
+                     :transaction               read-packet-transaction
+                     :updatesign                read-packet-updatesign
+                     :mapdata                   read-packet-mapdata
+                     :incrementstatistic        read-packet-incrementstatistic
+                     :disconnectkick            read-packet-disconnectkick})
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [bot]
   (let [conn (:connection bot)
-        packet-id (int (-read-byte conn))
-        packet-type (packet-types packet-id)]
-    (if (= nil packet-type)
-      (do
-        (println (str "UNKNOWN PACKET TYPE: " (Integer/toHexString packet-id)))
-        (/ 1 0))
-      ((packet-type packet-readers) bot conn))))
+        packet-id-byte (-read-byte conn)]
+    (let [packet-id (when (not (nil? packet-id-byte))
+                      (int packet-id-byte))
+          packet-type (packet-types packet-id)]
+      (if (nil? packet-type)
+        (do
+          (println packet-type)
+          (println (str "UNKNOWN PACKET TYPE: " (Integer/toHexString packet-id)))
+          (/ 1 0))
+        (let [payload (do ((packet-type packet-readers) bot conn))]
+          (do
+            (when (#{:mapchunk} packet-type)
+              (println (str "--PACKET--> " packet-type))
+              (println payload))
+            payload))))))
 

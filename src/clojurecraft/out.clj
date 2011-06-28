@@ -240,39 +240,39 @@
   (-write-string-ucs2 conn reason))
 
 
-(def- packet-writers {:keepalive            write-packet-keepalive
-                      :handshake            write-packet-handshake
-                      :login                write-packet-login
-                      :chat                 write-packet-chat
-                      :respawn              write-packet-respawn
-                      :player               write-packet-player
-                      :playerposition       write-packet-playerposition
-                      :playerlook           write-packet-playerlook
-                      :playerpositionlook   write-packet-playerpositionlook
-                      :playerdigging        write-packet-playerdigging
-                      :playerblockplacement write-packet-playerblockplacement
-                      :holdingchange        write-packet-holdingchange
-                      :usebed               write-packet-usebed
-                      :animation            write-packet-animation
-                      :entityaction         write-packet-entityaction
-                      :pickupspawn          write-packet-pickupspawn
-                      :entitypainting       write-packet-entitypainting
-                      :stanceupdate         write-packet-stanceupdate
-                      :entityvelocity       write-packet-entityvelocity
-                      :attachentity         write-packet-attachentity
-                      :entitymetadata       write-packet-entitymetadata
-                      :multiblockchange     write-packet-multiblockchange
-                      :blockchange          write-packet-blockchange
-                      :explosion            write-packet-explosion
-                      :soundeffect          write-packet-soundeffect
-                      :newinvalidstate      write-packet-newinvalidstate
-                      :openwindow           write-packet-openwindow
-                      :closewindow          write-packet-closewindow
-                      :windowclick          write-packet-windowclick
-                      :transaction          write-packet-transaction
-                      :updatesign           write-packet-updatesign
-                      :incrementstatistic   write-packet-incrementstatistic
-                      :disconnectkick       write-packet-disconnectkick})
+(def packet-writers {:keepalive            write-packet-keepalive
+                     :handshake            write-packet-handshake
+                     :login                write-packet-login
+                     :chat                 write-packet-chat
+                     :respawn              write-packet-respawn
+                     :player               write-packet-player
+                     :playerposition       write-packet-playerposition
+                     :playerlook           write-packet-playerlook
+                     :playerpositionlook   write-packet-playerpositionlook
+                     :playerdigging        write-packet-playerdigging
+                     :playerblockplacement write-packet-playerblockplacement
+                     :holdingchange        write-packet-holdingchange
+                     :usebed               write-packet-usebed
+                     :animation            write-packet-animation
+                     :entityaction         write-packet-entityaction
+                     :pickupspawn          write-packet-pickupspawn
+                     :entitypainting       write-packet-entitypainting
+                     :stanceupdate         write-packet-stanceupdate
+                     :entityvelocity       write-packet-entityvelocity
+                     :attachentity         write-packet-attachentity
+                     :entitymetadata       write-packet-entitymetadata
+                     :multiblockchange     write-packet-multiblockchange
+                     :blockchange          write-packet-blockchange
+                     :explosion            write-packet-explosion
+                     :soundeffect          write-packet-soundeffect
+                     :newinvalidstate      write-packet-newinvalidstate
+                     :openwindow           write-packet-openwindow
+                     :closewindow          write-packet-closewindow
+                     :windowclick          write-packet-windowclick
+                     :transaction          write-packet-transaction
+                     :updatesign           write-packet-updatesign
+                     :incrementstatistic   write-packet-incrementstatistic
+                     :disconnectkick       write-packet-disconnectkick})
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn- flushc [conn]
@@ -281,6 +281,8 @@
 (defn write-packet [bot packet-type payload]
   (let [conn (:connection bot)
         handler (packet-type packet-writers)]
+    ;(println (str "--WRITE--> " packet-type))
+    ;(println payload)
     (-write-byte conn (packet-type packet-ids))
     (handler conn payload)
     (flushc conn)))

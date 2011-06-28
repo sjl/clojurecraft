@@ -86,5 +86,6 @@
 
 ; Scratch --------------------------------------------------------------------------
 (def bot (connect minecraft-local))
-(disconnect bot)
+;(println (:world bot))
+;(disconnect bot)
 
