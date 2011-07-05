@@ -1,4 +1,5 @@
 (ns clojurecraft.in
+  (:use [clojurecraft.util])
   (:use [clojurecraft.mappings])
   (:import (java.util.zip Inflater)))
 
@@ -359,13 +360,9 @@
                                  (:sizey predata)
                                  (:sizez predata)) 2))
         decompressor (Inflater.)]
-    (println 1)
     (.setInput decompressor raw-data 0 (:compressedsize predata))
-    (println 2)
     (.inflate decompressor buffer)
-    (println 3)
     (.end decompressor)
-    (println 4)
     buffer))
 
 (defn- read-packet-mapchunk [bot conn]
@@ -472,9 +469,9 @@
   (let [prepayload (assoc {}
                      :windowid (-read-byte conn)
                      :count (-read-short conn))
-        items (repeatedly (:count prepayload)
-                #(-read-packet-windowitems-payloaditem conn))]
-    (println (assoc prepayload :items items))))
+        items (doall (repeatedly (:count prepayload)
+                                 #(-read-packet-windowitems-payloaditem conn)))]
+    (assoc prepayload :items items)))
 
 (defn- read-packet-updateprogressbar [bot conn]
   (assoc {}
@@ -576,9 +573,19 @@
     (let [packet-id (when (not (nil? packet-id-byte))
                       (int packet-id-byte))
           packet-type (packet-types packet-id)]
+
+      ; Record the packet type
+      (dosync
+        (let [counts (:packet-counts-in bot)
+              current (get @counts packet-type 0)]
+          (swap! counts
+                 assoc
+                 packet-type
+                 (inc current))))
+
+      ; Handle packet
       (if (nil? packet-type)
         (do
-          (println packet-type)
           (println (str "UNKNOWN PACKET TYPE: " (Integer/toHexString packet-id)))
           (/ 1 0))
         (let [payload (do ((packet-type packet-readers) bot conn))]

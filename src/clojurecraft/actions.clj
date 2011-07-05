@@ -1,1 +1,3 @@
-(ns clojurecraft.actions)
+(ns clojurecraft.actions
+  (:use [clojurecraft.util])
+  )

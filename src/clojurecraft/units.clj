@@ -1,4 +1,6 @@
-(ns clojurecraft.units)
+(ns clojurecraft.units
+  (:use [clojurecraft.util])
+  )
 
 (defn to-pixels [n type]
   (case type

@@ -2,6 +2,8 @@
   (:use [clojurecraft.mappings])
   (:use [clojurecraft.in])
   (:use [clojurecraft.out])
+  (:use [clojurecraft.util])
+  (:use [clojure.contrib.pprint :only (pprint)])
   (:import (java.net Socket)
            (java.io DataOutputStream DataInputStream)
            (java.util.concurrent LinkedBlockingQueue)))
@@ -19,7 +21,7 @@
   (read-packet bot)
 
   ; Send login
-  (write-packet bot :login {:version 13 :username "timmy"})
+  (write-packet bot :login {:version 14 :username "timmy"})
 
   ; Get login
   (read-packet bot))
@@ -36,8 +38,7 @@
   (let [conn (:connection bot)
         outqueue (:outqueue bot)]
     (while (nil? (:exit @conn))
-      (let [player (:player bot)
-            location (:location @player)]
+      (let [location (:location @(:player bot))]
         (when (not (nil? location))
           (.put outqueue [:playerpositionlook location]))
         (Thread/sleep 50)))))
@@ -58,7 +59,8 @@
         outqueue (LinkedBlockingQueue.)
         player (ref {:location nil})
         world (ref {})
-        bot {:connection conn, :outqueue outqueue, :player player, :world world}]
+        bot {:connection conn, :outqueue outqueue, :player player, :world world,
+             :packet-counts-in (atom {}), :packet-counts-out(atom {})}]
 
     (println "connecting")
     (login bot)
@@ -85,7 +87,9 @@
 
 
 ; Scratch --------------------------------------------------------------------------
-(def bot (connect minecraft-local))
+;(def bot (connect minecraft-local))
+(pprint (:packet-counts-in bot))
+(pprint (:packet-counts-out bot))
 ;(println (:world bot))
 ;(disconnect bot)
 

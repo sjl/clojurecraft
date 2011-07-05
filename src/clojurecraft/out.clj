@@ -1,4 +1,5 @@
 (ns clojurecraft.out
+  (:use [clojurecraft.util])
   (:use [clojurecraft.mappings]))
 
 ; Writing Data ---------------------------------------------------------------------
@@ -281,8 +282,16 @@
 (defn write-packet [bot packet-type payload]
   (let [conn (:connection bot)
         handler (packet-type packet-writers)]
-    ;(println (str "--WRITE--> " packet-type))
-    ;(println payload)
+
+    ; Record the packet type
+    (dosync
+      (let [counts (:packet-counts-out bot)
+            current (get @counts packet-type 0)]
+        (swap! counts
+               assoc
+               packet-type
+               (inc current))))
+
     (-write-byte conn (packet-type packet-ids))
     (handler conn payload)
     (flushc conn)))
