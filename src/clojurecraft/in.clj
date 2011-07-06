@@ -40,7 +40,7 @@
     i))
 
 (defn- -read-shortarray [conn size]
-  (repeatedly size #(-read-short conn)))
+  (doall (repeatedly size #(-read-short conn))))
 
 (defn- -read-bool [conn]
   (let [b (.readBoolean (:in @conn))]
@@ -60,7 +60,7 @@
 
 (defn- -read-string-ucs2 [conn]
   (let [str-len (.readShort (:in @conn))
-                s (apply str (repeatedly str-len #(.readChar (:in @conn))))]
+                s (doall (apply str (repeatedly str-len #(.readChar (:in @conn)))))]
     s))
 
 (defn- -read-metadata [conn]
@@ -590,8 +590,7 @@
           (/ 1 0))
         (let [payload (do ((packet-type packet-readers) bot conn))]
           (do
-            (when (#{:mapchunk} packet-type)
-              (println (str "--PACKET--> " packet-type))
-              (println payload))
+            (when (#{} packet-type)
+              (println (str "--PACKET--> " packet-type)))
             payload))))))
 

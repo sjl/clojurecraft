@@ -13,7 +13,7 @@
 
 (defn- -write-short [conn i]
   (doto (:out @conn)
-    (.writeShort (int i))))
+    (.writeShort (short i))))
 
 (defn- -write-shortarray [conn sa]
   (map #(-write-short %) sa))
@@ -24,15 +24,15 @@
 
 (defn- -write-long [conn i]
   (doto (:out @conn)
-    (.writeLong (int i))))
+    (.writeLong (long i))))
 
 (defn- -write-double [conn i]
   (doto (:out @conn)
-    (.writeDouble (int i))))
+    (.writeDouble (double i))))
 
 (defn- -write-float [conn i]
   (doto (:out @conn)
-    (.writeFloat (int i))))
+    (.writeFloat (float i))))
 
 (defn- -write-string-utf8 [conn s]
   (doto (:out @conn)
