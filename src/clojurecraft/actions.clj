@@ -9,7 +9,8 @@
             new-location (merge location
                                 {:x (+ x-change (:x location))
                                  :y (+ y-change (:y location))
-                                 :z (+ z-change (:z location))})]
+                                 :z (+ z-change (:z location))
+                                 :stance (+ y-change (:stance location))})]
         (alter player merge {:location new-location}))))
   bot)
 
