@@ -61,7 +61,7 @@
                                 :y 85.0, :stance 60.0, :x -120.0}})
         world (ref {})
         bot {:connection conn, :outqueue outqueue, :player player, :world world,
-             :packet-counts-in (atom {}), :packet-counts-out(atom {})}]
+             :packet-counts-in (atom {}), :packet-counts-out (atom {})}]
 
     (println "connecting")
     (login bot)
@@ -88,8 +88,8 @@
 
 
 ; Scratch --------------------------------------------------------------------------
-(def bot (connect minecraft-local))
-(act/move bot 0 4 0)
+;(def bot (connect minecraft-local))
+;(act/move bot 4 0 2)
 ;(pprint @(:packet-counts-in bot))
 ;(pprint @(:packet-counts-out bot))
 ;(pprint (:player bot))
