@@ -1,4 +1,4 @@
-* TODO Wrap all IO in io!.
+* DONE Wrap all IO in io!.
 * TODO Wrap class mutations in io!?
 * TODO Use Clojure's ugly keyword arguments.
 

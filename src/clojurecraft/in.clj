@@ -19,69 +19,80 @@
 
 ; Reading Data ---------------------------------------------------------------------
 (defn- -read-byte [conn]
-  (let [b (.readByte (:in @conn))]
-    b))
+  (io! 
+    (let [b (.readByte (:in @conn))]
+      b)))
 
 (defn- -read-bytearray [conn size]
-  (let [ba (byte-array size)]
-    (.read (:in @conn) ba 0 size)
-    ba))
+  (io! 
+    (let [ba (byte-array size)]
+         (.read (:in @conn) ba 0 size)
+         ba)))
 
 (defn- -read-int [conn]
-  (let [i (.readInt (:in @conn))]
-    i))
+  (io! 
+    (let [i (.readInt (:in @conn))]
+      i)))
 
 (defn- -read-long [conn]
-  (let [i (.readLong (:in @conn))]
-    i))
+  (io! 
+    (let [i (.readLong (:in @conn))]
+      i)))
 
 (defn- -read-short [conn]
-  (let [i (.readShort (:in @conn))]
-    i))
+  (io!
+    (let [i (.readShort (:in @conn))]
+      i)))
 
 (defn- -read-shortarray [conn size]
   (doall (repeatedly size #(-read-short conn))))
 
 (defn- -read-bool [conn]
-  (let [b (.readBoolean (:in @conn))]
-    b))
+  (io!
+    (let [b (.readBoolean (:in @conn))]
+      b)))
 
 (defn- -read-double [conn]
-  (let [i (.readDouble (:in @conn))]
-    i))
+  (io!
+    (let [i (.readDouble (:in @conn))]
+      i)))
 
 (defn- -read-float [conn]
-  (let [i (.readFloat (:in @conn))]
-    i))
+  (io!
+    (let [i (.readFloat (:in @conn))]
+      i)))
 
 (defn- -read-string-utf8 [conn]
-  (let [s (.readUTF (:in @conn))]
-    s))
+  (io!
+    (let [s (.readUTF (:in @conn))]
+      s)))
 
 (defn- -read-string-ucs2 [conn]
-  (let [str-len (.readShort (:in @conn))
-                s (doall (apply str (repeatedly str-len #(.readChar (:in @conn)))))]
-    s))
+  (io!
+    (let [str-len (.readShort (:in @conn))
+          s (doall (apply str (repeatedly str-len #(.readChar (:in @conn)))))]
+      s)))
 
 (defn- -read-metadata [conn]
-  (loop [data []]
-    (let [x (-read-byte conn)]
-      (if (= x 127)
-        data
-        (case (bit-shift-right x 5)
-          0 (recur (conj data (-read-byte conn)))
-          1 (recur (conj data (-read-short conn)))
-          2 (recur (conj data (-read-int conn)))
-          3 (recur (conj data (-read-float conn)))
-          4 (recur (conj data (-read-string-ucs2 conn)))
-          5 (recur (conj data (assoc {}
-                                     :id (-read-short conn)
-                                     :count (-read-byte conn)
-                                     :damage (-read-short conn))))
-          6 (recur (conj data (assoc {}
-                                     :i (-read-int conn)
-                                     :j (-read-int conn)
-                                     :k (-read-int conn)))))))))
+  (io! 
+    (loop [data []]
+      (let [x (-read-byte conn)]
+        (if (= x 127)
+          data
+          (case (bit-shift-right x 5)
+            0 (recur (conj data (-read-byte conn)))
+            1 (recur (conj data (-read-short conn)))
+            2 (recur (conj data (-read-int conn)))
+            3 (recur (conj data (-read-float conn)))
+            4 (recur (conj data (-read-string-ucs2 conn)))
+            5 (recur (conj data (assoc {}
+                                       :id (-read-short conn)
+                                       :count (-read-byte conn)
+                                       :damage (-read-short conn))))
+            6 (recur (conj data (assoc {}
+                                       :i (-read-int conn)
+                                       :j (-read-int conn)
+                                       :k (-read-int conn))))))))))
 
 
 ; Reading Packets ------------------------------------------------------------------
