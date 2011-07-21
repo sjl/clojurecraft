@@ -14,15 +14,15 @@
 (declare conn-handler)
 (declare login)
 
-(defn login [bot]
+(defn login [bot username]
   ; Send handshake
-  (write-packet bot :handshake {:username "timmy"})
+  (write-packet bot :handshake {:username username})
 
   ; Get handshake
   (read-packet bot)
 
   ; Send login
-  (write-packet bot :login {:version 14 :username "timmy"})
+  (write-packet bot :login {:version 14 :username username})
 
   ; Get login
   (read-packet bot))
@@ -51,7 +51,7 @@
         (write-packet bot packet-type payload)))))
 
 
-(defn connect [server]
+(defn connect [server username]
   (let [socket (Socket. (:name server) (:port server))
         in (DataInputStream. (.getInputStream socket))
         out (DataOutputStream. (.getOutputStream socket))
@@ -64,7 +64,7 @@
              :packet-counts-in (atom {}), :packet-counts-out (atom {})}]
 
     (println "connecting")
-    (login bot)
+    (login bot username)
     (println "connected and logged in")
 
     (println "starting read handler")
@@ -88,8 +88,8 @@
 
 
 ; Scratch --------------------------------------------------------------------------
-;(def bot (connect minecraft-local))
-;(act/move bot 1 0 2)
+(def bot (connect minecraft-local "Honeydew"))
+(act/move bot 0 -1 0)
 ;(pprint @(:packet-counts-in bot))
 ;(pprint @(:packet-counts-out bot))
 ;(pprint (:player bot))
