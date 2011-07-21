@@ -4,48 +4,38 @@
 
 ; Writing Data ---------------------------------------------------------------------
 (defn- -write-byte [conn i]
-  (doto (:out @conn)
-    (.writeByte (int i))))
+  (io! (.writeByte (:out @conn) (int i))))
 
 (defn- -write-bytearray [conn ba]
-  (doto (:out @conn)
-    (.write ba 0 (count ba))))
+  (io! (.write (:out @conn) ba 0 (count ba))))
 
 (defn- -write-short [conn i]
-  (doto (:out @conn)
-    (.writeShort (short i))))
+  (io! (.writeShort (:out @conn) (short i))))
 
 (defn- -write-shortarray [conn sa]
-  (map #(-write-short %) sa))
+  (doall (map #(-write-short %) sa)))
 
 (defn- -write-int [conn i]
-  (doto (:out @conn)
-    (.writeInt (int i))))
+  (io! (.writeInt (:out @conn) (int i))))
 
 (defn- -write-long [conn i]
-  (doto (:out @conn)
-    (.writeLong (long i))))
+  (io! (.writeLong (:out @conn) (long i))))
 
 (defn- -write-double [conn i]
-  (doto (:out @conn)
-    (.writeDouble (double i))))
+  (io! (.writeDouble (:out @conn) (double i))))
 
 (defn- -write-float [conn i]
-  (doto (:out @conn)
-    (.writeFloat (float i))))
+  (io! (.writeFloat (:out @conn) (float i))))
 
 (defn- -write-string-utf8 [conn s]
-  (doto (:out @conn)
-    (.writeUTF s)))
+  (io! (.writeUTF (:out @conn) s)))
 
 (defn- -write-string-ucs2 [conn s]
   (-write-short conn (count s))
-  (doto (:out @conn)
-    (.writeChars s)))
+  (io! (.writeChars (:out @conn) s)))
 
 (defn- -write-bool [conn b]
-  (doto (:out @conn)
-    (.writeBoolean b)))
+  (io! (.writeBoolean (:out @conn) b)))
 
 (defn- -write-metadata [conn m]
   ; TODO: Implement this.

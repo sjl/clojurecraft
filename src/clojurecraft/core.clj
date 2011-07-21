@@ -89,7 +89,7 @@
 
 ; Scratch --------------------------------------------------------------------------
 ;(def bot (connect minecraft-local))
-;(act/move bot 4 0 2)
+;(act/move bot 2 0 0)
 ;(pprint @(:packet-counts-in bot))
 ;(pprint @(:packet-counts-out bot))
 ;(pprint (:player bot))
