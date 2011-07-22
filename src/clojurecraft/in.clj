@@ -2,7 +2,7 @@
   (:use [clojurecraft.util])
   (:use [clojurecraft.mappings])
   (:require [clojurecraft.data])
-  (:import [clojurecraft.data Location])
+  (:import [clojurecraft.data Location Entity])
   (:import (java.util.zip Inflater)))
 
 ; Bytes ----------------------------------------------------------------------------
@@ -289,8 +289,15 @@
          :eid (-read-int conn)))
 
 (defn- read-packet-entity [bot conn]
-  (assoc {}
-         :eid (-read-int conn)))
+  (let [payload (assoc {}
+                       :eid (-read-int conn))]
+    (dosync
+      (let [eid (:eid payload)
+            entities (:entities (:world bot))
+            entity (@entities eid)]
+        (when-not entity
+          (alter entities assoc eid (Entity. eid nil false)))))
+    payload))
 
 (defn- read-packet-entityrelativemove [bot conn]
   (assoc {}

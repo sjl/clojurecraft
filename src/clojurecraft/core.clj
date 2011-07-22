@@ -120,11 +120,12 @@
 ; Scratch --------------------------------------------------------------------------
 (def minecraft-local {:name "localhost" :port 25565})
 
-(def bot (connect minecraft-local nil))
+;(def bot (connect minecraft-local nil))
 ;(act/move bot -2 0 0)
 ;(pprint @(:packet-counts-in bot))
 ;(pprint @(:packet-counts-out bot))
 ;(pprint (:player bot))
+;(pprint (:world bot))
 ;(println (:loc @(:player bot)))
 ;(disconnect bot)
 
