@@ -53,10 +53,7 @@ action implemented is basic movement.  Move your bot around with `act/move`:
 The numbers are the x, y, and z distance you wish to move.
 
 If the bot doesn't appear to move, you may have tried to make an illegal move (like
-moving into a block).  Try some other numbers.
-
-If you move into the air and don't "fall" quickly enough by making subsequent moves
-in the negative y direction the server will kick you.  Watch the terminal window with
-the server output for more details.
+moving into a block).  Try some other numbers.  Check the server output for more
+information if something goes wrong.
 
 Have fun!
