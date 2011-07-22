@@ -12,22 +12,20 @@ Data Structures
 
 World data is shared between all the bots you create in a single process.  This helps
 keep memory usage down by not storing duplicate copies of chunk and entity
-information for each bot`in the same world.
+information for each bot in the same world.
 
 Worlds
 ------
 
-`World` objects have several pieces of data.
-
-Please read the Transactions section to learn why the data is structured the way it
-is.
+`World` objects have several pieces of data.  Please read the Transactions section to
+learn why the data is structured the way it is.
 
 `(:time world)` is a ref containing the current world time.
 
 `(:entities world)` is a ref containing a map of entity IDs to `Entity` refs.
 
 `(:chunks world)` is a ref containing a map of chunk coordinates ([x y z] vectors)
-to `Entity` refs.
+to `Chunk` refs.
 
 Locations
 ---------
@@ -55,7 +53,7 @@ player.
 world.
 
 `(:despawned entity)` is a boolean that indicates whether the entity has despawned.
-You should never need to read this, but plase read the Transactions section for the
+You should never need to read this, but please read the Transactions section for the
 reason why it's included.
 
 Chunks
@@ -121,9 +119,10 @@ on the maps themselves, but be aware that this will probably not be very perform
 
 ### Entity Despawns
 
-This also reveals the reason for the `:despawn` entry in an `Entity` object: if we
+This also reveals the reason for the `:despawned` entry in an `Entity` object: if we
 simply removed the entity from the map when it despawned any transactions depending
-on that entity wouldn't be restarted.
+on that entity wouldn't be restarted.  Setting the `:despawned` value on an entity
+modifies it and triggers appropriate retries.
 
 Actions
 =======
