@@ -22,10 +22,11 @@ a REPL:
     lein deps
     lein repl
 
-Now you'll need to open another terminal window to run the server.  It's just
-the vanilla Minecraft server that I've bundled into the repo:
+Now you'll need to open another terminal window to download and run the vanilla
+server:
 
     cd path/to/clojurecraft
+    bundled/bootstrap.sh
     bundled/runserver.sh
 
 Wait for the server to finish loading (it'll say "Done") and then connect to it with
