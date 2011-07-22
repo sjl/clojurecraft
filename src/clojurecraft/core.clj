@@ -27,6 +27,10 @@
 
 
 ; Connections ----------------------------------------------------------------------
+
+(defn- random-username []
+   (apply str (repeatedly 10 #(rand-nth "abcdefghijklmnopqrstuvwxyz"))))
+
 (defn login [bot username]
   ; Send handshake
   (write-packet bot :handshake {:username username})
@@ -64,7 +68,8 @@
 
 
 (defn connect [server username]
-  (let [socket (Socket. (:name server) (:port server))
+  (let [username (or username (random-username))
+        socket (Socket. (:name server) (:port server))
         in (DataInputStream. (.getInputStream socket))
         out (DataOutputStream. (.getOutputStream socket))
         conn (ref {:in in :out out})
@@ -115,7 +120,7 @@
 ; Scratch --------------------------------------------------------------------------
 (def minecraft-local {:name "localhost" :port 25565})
 
-;(def bot (connect minecraft-local "Honeydew"))
+(def bot (connect minecraft-local nil))
 ;(act/move bot -2 0 0)
 ;(pprint @(:packet-counts-in bot))
 ;(pprint @(:packet-counts-out bot))
