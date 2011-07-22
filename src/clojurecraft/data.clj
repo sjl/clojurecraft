@@ -78,8 +78,8 @@
 ;   Worlds themselves should never need to be updated after creation -- instead the
 ;   various refs inside them are updated.
 ;
-; packet-counts-in  -> {:packet-type integer}
-; packet-counts-out -> {:packet-type integer}
+; packet-counts-in  -> (atom {:packet-type integer})
+; packet-counts-out -> (atom {:packet-type integer})
 (defrecord Bot [connection outqueue player world
                 packet-counts-in packet-counts-out])
 
