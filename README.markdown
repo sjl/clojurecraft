@@ -56,4 +56,9 @@ If the bot doesn't appear to move, you may have tried to make an illegal move (l
 moving into a block).  Try some other numbers.  Check the server output for more
 information if something goes wrong.
 
-Have fun!
+More Information
+================
+
+Clojurecraft isn't stable and is evolving quickly, but you can check out the
+[preliminary docs](https://github.com/sjl/clojurecraft/blob/master/docs.markdown) to
+read about some of the design decisions.
