@@ -41,7 +41,8 @@ Create a bot connected to your local server:
     (def bot (cc/connect cc/minecraft-local "desired_username"))
 
 Right now Clojurecraft doesn't support authentication, so it's turned off on the
-bundled server and you can choose any username you like.
+bundled server and you can choose any username you like.  You can pass `nil` instead
+of a username to get a random one.
 
 Give your bot a little time to connect.  You should see it appear in the world
 through your Minecraft client.
