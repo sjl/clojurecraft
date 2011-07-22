@@ -11,7 +11,6 @@
                                  :y (+ y-change (:y location))
                                  :z (+ z-change (:z location))
                                  :stance (+ y-change (:stance location))})]
-        (println (str "Moving from " location " to " new-location))
         (alter player merge {:loc new-location}))))
   bot)
 
