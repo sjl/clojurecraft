@@ -7,3 +7,4 @@ lib
 classes
 build
 /clojurecraft
+*.orig
