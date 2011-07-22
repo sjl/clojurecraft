@@ -66,6 +66,9 @@
 ; player -> (ref Entity)
 ;   A ref to the Entity representing the bot's player in the world.
 ;
+;   This is exactly the same thing as (@(world entities) player-id), it's just here
+;   for convenience.
+;
 ; world -> World
 ;   The world the bot is connected to.
 ;
@@ -75,8 +78,8 @@
 ;   Worlds themselves should never need to be updated after creation -- instead the
 ;   various refs inside them are updated.
 ;
-; packet-counts-in  -> integer
-; packet-counts-out -> integer
+; packet-counts-in  -> {:packet-type integer}
+; packet-counts-out -> {:packet-type integer}
 (defrecord Bot [connection outqueue player world
                 packet-counts-in packet-counts-out])
 
