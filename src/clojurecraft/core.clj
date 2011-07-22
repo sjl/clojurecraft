@@ -3,16 +3,17 @@
   (:use [clojurecraft.in])
   (:use [clojurecraft.out])
   (:use [clojurecraft.util])
-  (:use [clojurecraft.data])
   (:use [clojure.contrib.pprint :only (pprint)])
   (:require [clojurecraft.actions :as act])
+  (:require (clojurecraft.data))
+  (:import [clojurecraft.data Location Entity Block Chunk World Bot])
   (:import (java.net Socket)
            (java.io DataOutputStream DataInputStream)
            (java.util.concurrent LinkedBlockingQueue)))
 
-(def minecraft-local {:name "localhost" :port 25565})
+(def STARTING-LOC (Location. 0 0 0 0 0 0 false))
 
-; Connections ----------------------------------------------------------------------
+; Worlds ---------------------------------------------------------------------------
 (def *worlds* (ref {}))
 (defn get-world [server]
   (dosync
@@ -25,6 +26,7 @@
           (@*worlds* server))))))
 
 
+; Connections ----------------------------------------------------------------------
 (defn login [bot username]
   ; Send handshake
   (write-packet bot :handshake {:username username})
@@ -40,8 +42,7 @@
 
 
 (defn input-handler [bot]
-  (let [conn (:connection bot)
-        test 1]
+  (let [conn (:connection bot)]
     (while (nil? (:exit @conn))
       (read-packet bot)))
   (println "done"))
@@ -50,7 +51,7 @@
   (let [conn (:connection bot)
         outqueue (:outqueue bot)]
     (while (nil? (:exit @conn))
-      (let [location (:location @(:player bot))]
+      (let [location (:loc @(:player bot))]
         (.put outqueue [:playerpositionlook location])
         (Thread/sleep 50)))))
 
@@ -68,44 +69,57 @@
         out (DataOutputStream. (.getOutputStream socket))
         conn (ref {:in in :out out})
         outqueue (LinkedBlockingQueue.)
-
         world (get-world server)
-        player (ref {:location {:onground false, :pitch 0.0, :yaw 0.0, :z 240.0,
-                                :y 85.0, :stance 60.0, :x -120.0}})
-        bot {:connection conn, :outqueue outqueue, :player player, :world world,
-             :packet-counts-in (atom {}), :packet-counts-out (atom {})}]
+        bot (Bot. conn outqueue nil world
+                  (atom {}) (atom {}))]
 
     (println "connecting")
-    (login bot username)
-    (println "connected and logged in")
 
-    (println "starting read handler")
-    (doto (Thread. #(input-handler bot)) (.start))
+    ; We need to log in to find out our bot's entity ID, so we delay creation of the
+    ; player until then.
+    (let [player-id (:eid (login bot username))
+          player (ref (Entity. player-id STARTING-LOC false))
+          bot (assoc bot :player player)]
 
-    (println "starting write handler")
-    (doto (Thread. #(output-handler bot)) (.start))
+      ; Theoretically another connected bot could fill in the player's entity entry
+      ; in the world before we get here, but in practice it probably doesn't matter
+      ; because we're going to fill it in anyway.
+      ;
+      ; The fact that there could be a ref thrown away is troubling.
+      ;
+      ; TODO: Think more about this.
+      (dosync (alter (:entities world) assoc player-id player))
 
-    (println "starting location updating handler")
-    (doto (Thread. #(location-handler bot)) (.start))
+      (println "connected and logged in")
 
-    (println "writing initial keepalive packet")
-    (.put outqueue [:keepalive {}])
+      (println "queueing initial keepalive packet")
+      (.put outqueue [:keepalive {}])
 
-    (println "all systems go, returning bot")
-    bot))
+      (println "starting read handler")
+      (.start (Thread. #(input-handler bot)))
+
+      (println "starting write handler")
+      (.start (Thread. #(output-handler bot)))
+
+      (println "starting location updating handler")
+      (.start (Thread. #(location-handler bot)))
+
+      (println "all systems go!")
+
+      bot)))
 
 (defn disconnect [bot]
   (dosync (alter (:connection bot) merge {:exit true})))
 
 
-; Utility functions ----------------------------------------------------------------
-
 ; Scratch --------------------------------------------------------------------------
+(def minecraft-local {:name "localhost" :port 25565})
+
 ;(def bot (connect minecraft-local "Honeydew"))
-;(act/move bot 0 -1 0)
+;(act/move bot -2 0 0)
 ;(pprint @(:packet-counts-in bot))
 ;(pprint @(:packet-counts-out bot))
 ;(pprint (:player bot))
-;(println (:location @(:player bot)))
+;(println (:loc @(:player bot)))
 ;(disconnect bot)
 

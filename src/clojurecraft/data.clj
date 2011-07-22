@@ -77,7 +77,7 @@
 ;   A queue of packets to write, so we can coordinate the writes
 ;   to avoid mixing packets together.
 ;
-;   Don't ever touch this.  Use out/-write-packet-* instead.
+;   Don't ever touch this.  Use out/write-packet instead.
 ;
 ; player -> (ref Entity)
 ;   A ref to the Entity representing the bot's player in the world.

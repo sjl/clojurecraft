@@ -1,6 +1,8 @@
 (ns clojurecraft.in
   (:use [clojurecraft.util])
   (:use [clojurecraft.mappings])
+  (:require (clojurecraft.data))
+  (:import [clojurecraft.data Location])
   (:import (java.util.zip Inflater)))
 
 ; Bytes ----------------------------------------------------------------------------
@@ -117,7 +119,7 @@
 (defn- read-packet-timeupdate [bot conn]
   (let [payload (assoc {}
                        :time (-read-long conn))]
-    (dosync (alter (:world bot) assoc :time (:time payload)))
+    (dosync (ref-set (:time (:world bot)) (:time payload)))
     payload))
 
 (defn- read-packet-equipment [bot conn]
@@ -156,7 +158,10 @@
                        :yaw (-read-float conn)
                        :pitch (-read-float conn)
                        :onground (-read-bool conn))]
-    (dosync (alter (:player bot) merge {:location payload}))
+    (dosync
+      (alter (:player bot)
+             assoc :loc (merge (Location. nil nil nil nil nil nil nil)
+                               payload)))
     payload))
 
 (defn- read-packet-playerdigging [bot conn]
