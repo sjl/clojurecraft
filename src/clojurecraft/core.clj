@@ -3,6 +3,7 @@
   (:use [clojurecraft.in])
   (:use [clojurecraft.out])
   (:use [clojurecraft.util])
+  (:use [clojurecraft.data])
   (:use [clojure.contrib.pprint :only (pprint)])
   (:require [clojurecraft.actions :as act])
   (:import (java.net Socket)
@@ -13,6 +14,19 @@
 
 (declare conn-handler)
 (declare login)
+
+; Connections ----------------------------------------------------------------------
+(def *worlds* (ref {}))
+(defn get-world [server]
+  (dosync
+    (ensure *worlds*)
+    (let [world (@*worlds* server)]
+      (if world
+        world
+        (do
+          (alter *worlds* assoc server (World. server (ref {}) (ref {}) (ref 0)))
+          (@*worlds* server))))))
+
 
 (defn login [bot username]
   ; Send handshake
@@ -57,9 +71,10 @@
         out (DataOutputStream. (.getOutputStream socket))
         conn (ref {:in in :out out})
         outqueue (LinkedBlockingQueue.)
+
+        world (get-world server)
         player (ref {:location {:onground false, :pitch 0.0, :yaw 0.0, :z 240.0,
                                 :y 85.0, :stance 60.0, :x -120.0}})
-        world (ref {})
         bot {:connection conn, :outqueue outqueue, :player player, :world world,
              :packet-counts-in (atom {}), :packet-counts-out (atom {})}]
 
@@ -86,10 +101,11 @@
   (dosync (alter (:connection bot) merge {:exit true})))
 
 
+; Utility functions ----------------------------------------------------------------
 
 ; Scratch --------------------------------------------------------------------------
-(def bot (connect minecraft-local "Honeydew"))
-(act/move bot 0 -1 0)
+;(def bot (connect minecraft-local "Honeydew"))
+;(act/move bot 0 -1 0)
 ;(pprint @(:packet-counts-in bot))
 ;(pprint @(:packet-counts-out bot))
 ;(pprint (:player bot))

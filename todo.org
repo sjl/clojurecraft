@@ -1,5 +1,3 @@
-* DONE Wrap all IO in io!.
-* TODO Wrap class mutations in io!?
 * TODO Use Clojure's ugly keyword arguments.
 
   (defn dothreads! [f & {thread-count :threads exec-count :times
@@ -7,60 +5,3 @@
   ...)
 
 * TODO Use some pre/post conditions.
-* TODO Make records for common pieces of data.
-** TODO Locations
-** TODO Entities
-** TODO Chunks
-* TODO Relayout the data structures.
-** TODO Servers
-
-   { 'localhost' world1,
-     '222.222.111.232' world2,
-     ... }
-
-** TODO World
-
-   { :entities {},
-     :chunks {}, }
-
-** TODO Entities
-
-   { 123 {},
-     234 {},
-     ... }
-
-** TODO Entity (ref)
-
-   { :eid 123,
-     :location location,
-     ...? }
-
-** TODO Location
-
-   { :x 100.0,
-     :y 100.1,
-     :z 80.3,
-     :stance 101.0,
-     :yaw 11.0,
-     :pitch 81.0,
-     :onground true }
-
-** TODO Chunks
-
-   { [1,23,12] (ref? chunk),
-     ... }
-
-** TODO Chunk (ref?)
-
-   { ? }
-
-** TODO Bot
-
-   { :world world,
-     :eid 123,
-     :connections { :in in-conn,
-                    :out out-conn },
-     :packet-counts { :in (atom 123),
-                      :out (atom 234) },
-     ...? }
-
