@@ -1,7 +1,7 @@
 (ns clojurecraft.in
   (:use [clojurecraft.util])
   (:use [clojurecraft.mappings])
-  (:require (clojurecraft.data))
+  (:require [clojurecraft.data])
   (:import [clojurecraft.data Location])
   (:import (java.util.zip Inflater)))
 
