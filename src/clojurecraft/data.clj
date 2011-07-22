@@ -32,7 +32,10 @@
 ; Chunk
 ;
 ; A single chunk in the world.
-(defrecord Chunk [])
+;
+; blocks -> [block ...]
+;   A vector of the blocks in this chunk.
+(defrecord Chunk [blocks])
 
 ; Block
 ;
@@ -81,12 +84,15 @@
 ;
 ; A representation of a single world/server, shared by all bots connected to it.
 ;
-; server   -> {:name hostname :port port}
+; server -> {:name hostname :port port}
+;
 ; entities -> (ref {eid (ref Entity) ...})
-;             A map of all the entities in the world.
-; chunks   -> (ref {[x y z] [(ref Chunk) ...] ...})
-;             A map of all the chunks in the world.
-; time     -> (ref integer)
-;             The current world time.
+;   A map of all the entities in the world.
+;
+; chunks -> (ref {[x y z] [(ref Chunk) ...] ...})
+;   A map of all the chunks in the world.
+;
+; time -> (ref integer)
+;   The current world time.
 (defrecord World [server entities chunks time])
 
