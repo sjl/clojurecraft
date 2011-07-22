@@ -12,9 +12,6 @@
 
 (def minecraft-local {:name "localhost" :port 25565})
 
-(declare conn-handler)
-(declare login)
-
 ; Connections ----------------------------------------------------------------------
 (def *worlds* (ref {}))
 (defn get-world [server]
