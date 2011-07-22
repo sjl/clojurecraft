@@ -29,14 +29,6 @@
 ;   without modifying it).
 (defrecord Entity [eid loc despawned])
 
-; Chunk
-;
-; A single chunk in the world.
-;
-; blocks -> [block ...]
-;   A vector of the blocks in this chunk.
-(defrecord Chunk [blocks])
-
 ; Block
 ;
 ; A representation of a single block.
@@ -47,6 +39,30 @@
 ;
 ; kind -> TODO
 (defrecord Block [loc kind])
+
+; Chunk
+;
+; A single chunk in the world.
+;
+; blocks -> [block ...]
+;   A vector of the blocks in this chunk.
+(defrecord Chunk [blocks])
+
+; World
+;
+; A representation of a single world/server, shared by all bots connected to it.
+;
+; server -> {:name hostname :port port}
+;
+; entities -> (ref {eid (ref Entity) ...})
+;   A map of all the entities in the world.
+;
+; chunks -> (ref {[x y z] [(ref Chunk) ...] ...})
+;   A map of all the chunks in the world.
+;
+; time -> (ref integer)
+;   The current world time.
+(defrecord World [server entities chunks time])
 
 ; Bot
 ;
@@ -82,20 +98,4 @@
 ; packet-counts-out -> (atom {:packet-type integer})
 (defrecord Bot [connection outqueue player world
                 packet-counts-in packet-counts-out])
-
-; World
-;
-; A representation of a single world/server, shared by all bots connected to it.
-;
-; server -> {:name hostname :port port}
-;
-; entities -> (ref {eid (ref Entity) ...})
-;   A map of all the entities in the world.
-;
-; chunks -> (ref {[x y z] [(ref Chunk) ...] ...})
-;   A map of all the chunks in the world.
-;
-; time -> (ref integer)
-;   The current world time.
-(defrecord World [server entities chunks time])
 
