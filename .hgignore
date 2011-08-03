@@ -9,3 +9,4 @@ build
 /clojurecraft
 *.orig
 bundled
+scratch.clj
