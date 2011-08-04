@@ -116,3 +116,5 @@
 (defn disconnect [bot]
   (dosync (alter (:connection bot) merge {:exit true})))
 
+
+(def minecraft-local {:name "localhost" :port 25565})

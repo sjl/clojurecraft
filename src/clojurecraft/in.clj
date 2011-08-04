@@ -1,6 +1,7 @@
 (ns clojurecraft.in
   (:use [clojurecraft.util])
   (:use [clojurecraft.mappings])
+  (:use [clojurecraft.chunks])
   (:require [clojurecraft.data])
   (:import [clojurecraft.data Location Entity])
   (:import (java.util.zip Inflater)))
@@ -13,31 +14,33 @@
       (reverse s))))
 
 (defn top [b]
-  (bit-shift-right (bit-and b 0xf0) 4))
+  (byte (bit-shift-right (bit-and b 0xf0) 4)))
 
 (defn bottom [b]
-  (bit-and b 0x0f))
+  (byte (bit-and b 0x0f)))
 
+(defn to-unsigned [b]
+  (bit-and b 0xff))
 
 ; Reading Data ---------------------------------------------------------------------
 (defn- -read-byte [conn]
-  (io! 
+  (io!
     (let [b (.readByte (:in @conn))]
-      b)))
+      (byte b))))
 
 (defn- -read-bytearray [conn size]
-  (io! 
+  (io!
     (let [ba (byte-array size)]
          (.read (:in @conn) ba 0 size)
          ba)))
 
 (defn- -read-int [conn]
-  (io! 
+  (io!
     (let [i (.readInt (:in @conn))]
       i)))
 
 (defn- -read-long [conn]
-  (io! 
+  (io!
     (let [i (.readLong (:in @conn))]
       i)))
 
@@ -76,12 +79,12 @@
       s)))
 
 (defn- -read-metadata [conn]
-  (io! 
+  (io!
     (loop [data []]
       (let [x (-read-byte conn)]
         (if (= x 127)
           data
-          (case (bit-shift-right x 5)
+          (case (bit-shift-right (to-unsigned x) 5)
             0 (recur (conj data (-read-byte conn)))
             1 (recur (conj data (-read-short conn)))
             2 (recur (conj data (-read-int conn)))
@@ -357,7 +360,7 @@
          nibbles []
          data data]
     (if (= i len)
-      [nibbles data]
+      [(byte-array nibbles) data]
       (let [next-byte (get data 0)
             top-byte (top next-byte)
             bottom-byte (bottom next-byte)]
