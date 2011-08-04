@@ -116,4 +116,3 @@
 (defn disconnect [bot]
   (dosync (alter (:connection bot) merge {:exit true})))
 
-
