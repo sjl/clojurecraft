@@ -12,5 +12,5 @@
                                  :z (+ z-change (:z location))
                                  :stance (+ y-change (:stance location))})]
         (alter player merge {:loc new-location}))))
-  bot)
+  nil)
 

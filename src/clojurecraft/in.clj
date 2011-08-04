@@ -3,7 +3,7 @@
   (:use [clojurecraft.mappings])
   (:use [clojurecraft.chunks])
   (:require [clojurecraft.data])
-  (:import [clojurecraft.data Location Entity])
+  (:import [clojurecraft.data Location Entity Chunk])
   (:import (java.util.zip Inflater)))
 
 ; Bytes ----------------------------------------------------------------------------
@@ -299,7 +299,7 @@
             entities (:entities (:world bot))
             entity (@entities eid)]
         (when-not entity
-          (alter entities assoc eid (Entity. eid nil false)))))
+          (alter entities assoc eid (Entity. eid nil false 0.0)))))
     payload))
 
 (defn- read-packet-entityrelativemove [bot conn]
@@ -376,8 +376,7 @@
     (let [[block-metadata data] (-parse-nibbles len data)
           [block-light data] (-parse-nibbles len data)
           [sky-light data] (-parse-nibbles len data)]
-      (map #({:blocktype %1 :blockmeta %2 :blocklight %3 :skylight %4})
-           block-types block-metadata block-light sky-light))))
+      [block-types block-metadata block-light sky-light])))
 
 (defn- -read-packet-mapchunk-chunkdata [conn predata]
   (let [raw-data (-read-bytearray conn (:compressedsize predata))
@@ -400,8 +399,16 @@
                        :sizey (+ 1 (-read-byte conn))
                        :sizez (+ 1 (-read-byte conn))
                        :compressedsize (-read-int conn))]
-    (let [decompressed-data (-read-packet-mapchunk-chunkdata conn predata)]
-      (assoc predata :data (-read-packet-mapchunk-decode predata decompressed-data)))))
+    (let [decompressed-data (-read-packet-mapchunk-chunkdata conn predata)
+          decoded-data (-read-packet-mapchunk-decode predata decompressed-data)]
+      (when (and (= (:sizex predata) 16) ; TODO: Handle partial chunks at some point.
+                 (= (:sizey predata) 128)
+                 (= (:sizez predata) 16))
+        (let [[types meta light sky] decoded-data
+              chunk (Chunk. types meta light sky)
+              chunk-coords (coords-of-chunk-containing (:x predata) (:z predata))]
+          (dosync (alter (:chunks (:world bot)) assoc chunk-coords chunk))))
+      (assoc predata :data decompressed-data))))
 
 
 (defn- read-packet-multiblockchange [bot conn]

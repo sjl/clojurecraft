@@ -67,7 +67,7 @@
   -1   nil
   0x00 :air
   0x01 :stone
-  0x02 :grass
+  0x02 :dirt-grassy
   0x03 :dirt
   0x04 :cobblestone
   0x05 :planks
@@ -162,6 +162,7 @@
   0x60 :hatch
 })
 (def block-ids (invert block-types))
+(def non-solid-blocks #{ :air :sign-wall })
 
 (def item-types {
   -1    nil

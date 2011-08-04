@@ -27,7 +27,7 @@
 ;   something has changed, since otherwise there would be no way to tell
 ;   (despawning would simply remove the object from the entity list
 ;   without modifying it).
-(defrecord Entity [eid loc despawned])
+(defrecord Entity [eid loc despawned velocity])
 
 ; Block
 ;
@@ -38,15 +38,21 @@
 ;   A simple vector of three coordinates, NOT a Location (for performance).
 ;
 ; kind -> TODO
-(defrecord Block [loc kind])
+(defrecord Block [loc type meta light sky-light])
 
 ; Chunk
 ;
 ; A single chunk in the world.
 ;
-; blocks -> [block ...]
-;   A vector of the blocks in this chunk.
-(defrecord Chunk [blocks])
+; You should never have to use these directly.  clojurecraft.chunks contains helper
+; functions that should give you the block data you need.
+;
+; types     -> [int ...]
+; metadata  -> byte-array
+; light     -> byte-array
+; sky-light -> byte-array
+;
+(defrecord Chunk [types metadata light sky-light])
 
 ; World
 ;
