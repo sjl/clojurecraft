@@ -371,7 +371,7 @@
 (defn- -read-packet-mapchunk-decode [predata data-ba]
   (let [len (* (:sizex predata) (:sizey predata) (:sizez predata))
         data (into [] data-ba)
-        block-types (subvec data 0 len)
+        block-types (byte-array (map byte (subvec data 0 len)))
         data (subvec data len)]
     (let [[block-metadata data] (-parse-nibbles len data)
           [block-light data] (-parse-nibbles len data)
@@ -390,6 +390,41 @@
     (.end decompressor)
     buffer))
 
+(defn- -update-chunk-data-array [arr new-data start-index]
+  (println "Updating chunk data array of size " (alength arr) " with new data of size " (count new-data) " beginning at " start-index)
+  (let [update-slot #(aset arr %1 (get new-data %2))]
+    (dorun (map update-slot
+                (range start-index (count new-data))
+                (range (count new-data))))))
+
+
+(defn- -get-or-make-chunk [chunks coords]
+  (let [CHUNK-ARRAY-LEN (* 16 16 128)]
+    (or (@chunks coords)
+        (let [chunk (ref (Chunk. (byte-array CHUNK-ARRAY-LEN)
+                                 (byte-array CHUNK-ARRAY-LEN)
+                                 (byte-array CHUNK-ARRAY-LEN)
+                                 (byte-array CHUNK-ARRAY-LEN)))]
+          (alter chunks assoc coords chunk)
+          chunk))))
+
+(defn- -update-world-with-data [{{chunks :chunks} :world} x y z types meta light sky]
+  (dosync (let [chunk-coords (coords-of-chunk-containing x z)
+                chunk (-get-or-make-chunk chunks chunk-coords)
+                new-types (byte-array (:types @chunk))
+                new-meta (byte-array (:metadata @chunk))
+                new-light (byte-array (:light @chunk))
+                new-sky (byte-array (:sky-light @chunk))
+                start-index (block-index-in-chunk x y z)]
+            (-update-chunk-data-array new-types types start-index)
+            (-update-chunk-data-array new-meta meta start-index)
+            (-update-chunk-data-array new-light light start-index)
+            (-update-chunk-data-array new-sky sky start-index)
+            (alter chunk assoc :types new-types)
+            (alter chunk assoc :metadata new-meta)
+            (alter chunk assoc :light new-light)
+            (alter chunk assoc :skylight new-sky))))
+
 (defn- read-packet-mapchunk [bot conn]
   (let [predata (assoc {}
                        :x (-read-int conn)
@@ -400,16 +435,25 @@
                        :sizez (+ 1 (-read-byte conn))
                        :compressedsize (-read-int conn))]
     (let [decompressed-data (-read-packet-mapchunk-chunkdata conn predata)
-          decoded-data (-read-packet-mapchunk-decode predata decompressed-data)]
-      (when (and (= (:sizex predata) 16) ; TODO: Handle partial chunks at some point.
-                 (= (:sizey predata) 128)
-                 (= (:sizez predata) 16))
-        (let [[types meta light sky] decoded-data
-              chunk (Chunk. types meta light sky)
-              chunk-coords (coords-of-chunk-containing (:x predata) (:z predata))]
-          (dosync (alter (:chunks (:world bot)) assoc chunk-coords chunk))))
+          decoded-data (-read-packet-mapchunk-decode predata decompressed-data)
+          [types meta light sky] decoded-data]
+      (-update-world-with-data bot
+                               (:x predata) (:y predata) (:z predata)
+                               types meta light sky)
       (assoc predata :data decompressed-data))))
 
+
+(defn -update-single-block [bot x y z type meta]
+  (println "Altering block " x y z " to be " (block-types (int type)))
+  (dosync (let [chunk (chunk-containing x z (:chunks (:world bot)))
+                new-types (byte-array (:types @chunk))
+                new-meta (byte-array (:metadata @chunk))
+                idx (block-index-in-chunk x y z)]
+            (when chunk
+              (aset new-types idx (byte type))
+              (aset new-meta idx (byte meta))
+              (alter chunk assoc :types new-types)
+              (alter chunk assoc :meta new-meta)))))
 
 (defn- read-packet-multiblockchange [bot conn]
   (let [prearrays (assoc {}
@@ -422,12 +466,17 @@
            :metadataarray (-read-bytearray conn (:arraysize prearrays)))))
 
 (defn- read-packet-blockchange [bot conn]
-  (assoc {}
-         :x (-read-int conn)
-         :y (-read-byte conn)
-         :z (-read-int conn)
-         :blocktype (-read-byte conn)
-         :blockmetadata (-read-byte conn)))
+  (let [data (assoc {}
+                    :x (-read-int conn)
+                    :y (-read-byte conn)
+                    :z (-read-int conn)
+                    :blocktype (-read-byte conn)
+                    :blockmetadata (-read-byte conn))]
+    (-update-single-block bot
+                          (:x data) (:y data) (:z data)
+                          (:blocktype data) (:blockmetadata data))
+    data))
+
 
 (defn- read-packet-playnoteblock [bot conn]
   (assoc {}

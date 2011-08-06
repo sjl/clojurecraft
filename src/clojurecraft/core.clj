@@ -69,7 +69,7 @@
      new-velocity]))
 
 (defn should-apply-gravity? [bot]
-  (non-solid-blocks (l :type (chunks/block-standing bot))))
+  (non-solid-blocks (:type (chunks/block-standing-in bot))))
 
 (defn update-location [bot]
   (when (chunks/current bot)
