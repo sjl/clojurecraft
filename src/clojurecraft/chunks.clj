@@ -18,12 +18,12 @@
 
 (defn block-from-chunk [x y z chunk]
   (let [i (block-index-in-chunk x y z)
-        block-type (get (:types @chunk) i)
-        block-meta (get (:metadata @chunk) i)
-        block-light (get (:light @chunk) i)
-        block-sky-light (get (:sky-light @chunk) i)]
+        block-type (aget (:types @chunk) i)
+        block-meta (aget (:metadata @chunk) i)
+        block-light (aget (:light @chunk) i)
+        block-sky-light (aget (:sky-light @chunk) i)]
     (Block. [x y z]
-            (block-types block-type)
+            (block-types (int block-type))
             block-meta
             block-light
             block-sky-light)))
@@ -43,11 +43,11 @@
          (+ 1 (int (+ (:y (:loc @(:player bot))) y)))
          (int (+ (:z (:loc @(:player bot))) z))))
 
-(defn block-standing-in [bot]
+(defn block-beneath [bot]
   (block bot
-         (int (:x (:loc @(:player bot))))
-         (int (:y (:loc @(:player bot))))
-         (int (:z (:loc @(:player bot))))))
+         (int (Math/floor (:x (:loc @(:player bot)))))
+         (int (Math/floor (:y (:loc @(:player bot)))))
+         (int (Math/floor (:z (:loc @(:player bot)))))))
 
 (defn current [bot]
   (chunk-containing

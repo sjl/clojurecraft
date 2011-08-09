@@ -37,19 +37,21 @@
   (write-packet bot :handshake {:username username})
 
   ; Get handshake
-  (read-packet bot)
+  (read-packet bot nil)
 
   ; Send login
   (write-packet bot :login {:version 14 :username username})
 
   ; Get login
-  (read-packet bot))
+  (get (read-packet bot nil) 1))
 
 
 (defn input-handler [bot]
   (let [conn (:connection bot)]
-    (while (nil? (:exit @conn))
-      (read-packet bot)))
+    (loop [prev nil]
+      (if (nil? (:exit @conn))
+        (recur (read-packet bot prev))
+        prev)))
   (println "done - input handler"))
 
 
@@ -69,7 +71,9 @@
      new-velocity]))
 
 (defn should-apply-gravity? [bot]
-  (non-solid-blocks (:type (chunks/block-standing-in bot))))
+  (let [y (:y (:loc @(:player bot)))]
+    (or (> (- y (Math/floor y)) 0.2)
+        (non-solid-blocks (:type (chunks/block-beneath bot))))))
 
 (defn update-location [bot]
   (when (chunks/current bot)
