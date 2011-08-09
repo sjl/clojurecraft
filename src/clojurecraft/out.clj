@@ -7,7 +7,7 @@
   (io! (.writeByte (:out @conn) (int i))))
 
 (defn- -write-bytearray [conn ba]
-  (io! (.write (:out @conn) ba 0 (count ba))))
+  (io! (.write (:out @conn) (byte-array (map byte ba)) 0 (count ba))))
 
 (defn- -write-short [conn i]
   (io! (.writeShort (:out @conn) (short i))))

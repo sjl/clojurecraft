@@ -10,7 +10,7 @@
   (:import [clojurecraft.data Location Entity Block Chunk World Bot])
   (:import (java.net Socket)
            (java.io DataOutputStream DataInputStream)
-           (java.util.concurrent LinkedBlockingQueue)))
+           (java.util.concurrent LinkedBlockingQueue TimeUnit)))
 
 (def STARTING-LOC (Location. 0 0 0 0 0 0 false))
 
@@ -50,7 +50,7 @@
   (let [conn (:connection bot)]
     (while (nil? (:exit @conn))
       (read-packet bot)))
-  (println "done"))
+  (println "done - input handler"))
 
 
 ; TODO: Investigate this.  I'm not convinced.
@@ -94,14 +94,18 @@
         (when (not (nil? location))
           (.put outqueue [:playerpositionlook location])
           (update-location bot))
-        (Thread/sleep 50)))))
+        (Thread/sleep 50))))
+  (println "done - location handler"))
 
 (defn output-handler [bot]
   (let [conn (:connection bot)
         outqueue (:outqueue bot)]
     (while (nil? (:exit @conn))
-      (let [[packet-type, payload] (.take outqueue)]
-        (write-packet bot packet-type payload)))))
+      (let [packet (.poll outqueue 1 TimeUnit/SECONDS)]
+        (when packet
+          (let [[packet-type, payload] packet]
+            (write-packet bot packet-type payload))))))
+  (println "done - output handler"))
 
 
 (defn connect [server username]

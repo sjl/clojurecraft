@@ -4,20 +4,20 @@
 ;
 ; The location of an entity in the world.
 ;
-; x        -> double
-; y        -> double
-; z        -> double
-; pitch    -> double
-; yaw      -> double
-; stance   -> double
-; onground -> boolean
+; x        -> Double
+; y        -> Double
+; z        -> Double
+; pitch    -> Double
+; yaw      -> Double
+; stance   -> Double
+; onground -> Boolean
 (defrecord Location [x y z pitch yaw stance onground])
 
 ; Entity
 ;
 ; A single entity in the world.
 ;
-; eid -> integer
+; eid -> Integer
 ; loc -> Location
 ;
 ; despawned -> boolean

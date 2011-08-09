@@ -23,7 +23,7 @@
         block-light (get (:light @chunk) i)
         block-sky-light (get (:sky-light @chunk) i)]
     (Block. [x y z]
-            (block-types (int block-type))
+            (block-types block-type)
             block-meta
             block-light
             block-sky-light)))
