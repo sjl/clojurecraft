@@ -631,7 +631,7 @@
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [bot prev]
   (let [conn (:connection bot)
-        packet-id-byte (-read-byte conn)]
+        packet-id-byte (to-unsigned (-read-byte conn))]
     (let [packet-id (when (not (nil? packet-id-byte))
                       packet-id-byte)
           packet-type (packet-types packet-id)]
