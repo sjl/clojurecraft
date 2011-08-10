@@ -39,6 +39,7 @@
 (defn any? [s]
   (not (empty? (filter identity s))))
 
+
 ; Bytes ----------------------------------------------------------------------------
 (defn byte-seq [b]
   (loop [n 0 b b s []]
@@ -55,4 +56,22 @@
 (defn to-unsigned [b]
   (bit-and b 0xff))
 
+
+(defn top-4 [b]
+  "Return the top four bits of a short.
+  
+  XXXX............"
+  (byte (bit-shift-right (bit-and b 0xf000) 12)))
+
+(defn mid-4 [b]
+  "Return the middle four bits of a short.
+
+  ....XXXX........"
+  (byte (bit-shift-right (bit-and b 0x0f00) 8)))
+
+(defn bottom-8 [b]
+  "Return the bottom eight bits of a short.
+  
+  ........XXXXXXXX"
+  (byte (bit-and b 0xff)))
 

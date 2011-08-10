@@ -38,20 +38,21 @@
   (write-packet bot :handshake {:username username})
 
   ; Get handshake
-  (read-packet bot nil)
+  (read-packet bot nil nil)
 
   ; Send login
   (write-packet bot :login {:version 14 :username username})
 
   ; Get login
-  (get (read-packet bot nil) 1))
+  (get (read-packet bot nil nil) 1))
 
 
 (defn input-handler [bot]
   (let [conn (:connection bot)]
-    (loop [prev nil]
+    (loop [prev nil
+           prev-prev nil]
       (if (nil? (:exit @conn))
-        (recur (read-packet bot prev))
+        (recur (read-packet bot prev prev-prev) prev)
         prev)))
   (println "done - input handler"))
 

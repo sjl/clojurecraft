@@ -430,7 +430,7 @@
 
 
 (defn -update-single-block [bot x y z type meta]
-  (println "Updating block" x y z "to be type" type)
+  (println "Updating block" x y z "to be type" (block-types type))
   (dosync (let [chunk (chunk-containing x z (:chunks (:world bot)))
                 i (block-index-in-chunk x y z)]
             (when chunk
@@ -438,15 +438,6 @@
                      :types (replace-array-index (:types @chunk) i type)
                      :metadata (replace-array-index (:metadata @chunk) i meta))))))
 
-(defn- read-packet-multiblockchange [bot conn]
-  (let [prearrays (assoc {}
-                         :chunkx (-read-int conn)
-                         :chunkz (-read-int conn)
-                         :arraysize (-read-short conn))]
-    (assoc prearrays
-           :coordinatearray (-read-shortarray conn (:arraysize prearrays))
-           :typearray (-read-bytearray conn (:arraysize prearrays))
-           :metadataarray (-read-bytearray conn (:arraysize prearrays)))))
 
 (defn- read-packet-blockchange [bot conn]
   (let [data (assoc {}
@@ -459,6 +450,26 @@
                           (:x data) (:y data) (:z data)
                           (:blocktype data) (:blockmetadata data))
     data))
+
+
+(defn- read-packet-multiblockchange [bot conn]
+  (let [prearrays (assoc {}
+                         :chunkx (-read-int conn)
+                         :chunkz (-read-int conn)
+                         :arraysize (-read-short conn))
+        payload (assoc prearrays
+                       :coordinatearray (-read-shortarray conn (:arraysize prearrays))
+                       :typearray (-read-bytearray conn (:arraysize prearrays))
+                       :metadataarray (-read-bytearray conn (:arraysize prearrays)))
+        parse-coords (fn [s] [(top-4 s) (mid-4 s) (bottom-8 s)])
+        coords (map parse-coords (:coordinatearray payload))]
+    (println "Reading a Multiple Block Change!")
+    (dorun (map #(-update-single-block bot (get %1 0) (get %1 2) (get %1 1) %2 %3)
+                coords
+                (:typearray payload)
+                (:metadataarray payload)))
+    (println "Done with a Multiple Block Change!")
+    payload))
 
 
 (defn- read-packet-playnoteblock [bot conn]
@@ -633,7 +644,7 @@
                      :disconnectkick            read-packet-disconnectkick})
 
 ; Reading Wrappers -----------------------------------------------------------------
-(defn read-packet [bot prev]
+(defn read-packet [bot prev prev-prev]
   (let [conn (:connection bot)
         packet-id-byte (to-unsigned (-read-byte conn))]
     (let [packet-id (when (not (nil? packet-id-byte))
@@ -659,5 +670,5 @@
           (do
             (when (#{} packet-type)
               (println (str "--PACKET--> " packet-type)))
-            [packet-type payload]))))))
+            [[packet-type payload] prev]))))))
 

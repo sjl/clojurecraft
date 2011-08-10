@@ -10,7 +10,10 @@
   (dosync (alter (:event-handlers bot) dissoc event-type)))
 
 
+(defn- fire-handler [bot event-type & args]
+  (dorun (map #(apply (eval %) (into [bot] args))
+              (event-type @(:event-handlers bot)))))
+
 (defn fire-chat [bot message]
-  (dorun (map #((eval %) bot message)
-              (:chat @(:event-handlers bot)))))
+  (fire-handler bot :chat message))
 
