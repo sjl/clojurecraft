@@ -1,5 +1,6 @@
 (ns clojurecraft.actions
-  (:use [clojurecraft.util]))
+  (:use [clojurecraft.util])
+  (:require [clojurecraft.physics :as physics]))
 
 
 (defn move [bot x-change y-change z-change]
@@ -12,5 +13,13 @@
                                  :z (+ z-change (:z location))
                                  :stance (+ y-change (:stance location))})]
         (alter player merge {:loc new-location}))))
+  nil)
+
+(defn jump [bot]
+  (let [player (:player bot)]
+    (dosync
+      (let [location (:loc @player)]
+        (alter player assoc-in [:loc :onground] false)
+        (alter player assoc :velocity physics/JUMP-VELOCITY))))
   nil)
 

@@ -5,6 +5,7 @@
   (:use [clojurecraft.util])
   (:use [clojure.contrib.pprint :only (pprint)])
   (:require [clojurecraft.chunks :as chunks])
+  (:require [clojurecraft.physics :as physics])
   (:require [clojurecraft.actions :as act])
   (:require (clojurecraft.data))
   (:import [clojurecraft.data Location Entity Block Chunk World Bot])
@@ -55,39 +56,18 @@
   (println "done - input handler"))
 
 
-; TODO: Investigate this.  I'm not convinced.
-(def G -9.8)       ; meters/second^2
-(def TICK 50/1000) ; seconds
-
-(defn apply-gravity [player]
-  (let [y        (:y      (:loc player))
-        stance   (:stance (:loc player))
-        velocity (:velocity player)
-        new-y        (+ y      (* velocity TICK))
-        new-stance   (+ stance (* velocity TICK))
-        new-velocity (max -4.0 (+ velocity (* G TICK)))]
-    [new-y        ; TODO: More research on terminal velocity.
-     new-stance
-     new-velocity]))
-
-(defn should-apply-gravity? [bot]
-  (let [y (:y (:loc @(:player bot)))]
-    (or (> (- y (Math/floor y)) 0.2)
-        (non-solid-blocks (:type (chunks/block-beneath bot))))))
-
 (defn update-location [bot]
   (when (chunks/current bot)
     (dosync
-      (let [player (:player bot)]
-        (if (should-apply-gravity? bot)
-          (let [[new-y new-stance new-velocity] (apply-gravity @player)]
-            (alter player assoc :velocity new-velocity)
-            (alter player assoc-in [:loc :y] new-y)
-            (alter player assoc-in [:loc :stance] new-stance)
-            (alter player assoc-in [:loc :onground] false))
-          (do
-            (alter player assoc :velocity 0.0)
-            (alter player assoc-in [:loc :onground] true)))))))
+      (let [player (:player bot)
+            loc (:loc @player)
+            [bounds-min bounds-max] (physics/player-bounds loc)
+            new-data-y (physics/update-loc-y bot bounds-min bounds-max)
+            {new-y :y new-onground :onground new-velocity :vel} new-data-y]
+        (alter player assoc :velocity new-velocity)
+        (alter player assoc-in [:loc :y] new-y)
+        (alter player assoc-in [:loc :stance] (+ new-y physics/CHAR-HEIGHT-EYES))
+        (alter player assoc-in [:loc :onground] new-onground)))))
 
 (defn location-handler [bot]
   (let [conn (:connection bot)

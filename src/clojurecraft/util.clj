@@ -30,6 +30,14 @@
     (aset-byte new-arr i b)
     new-arr))
 
+(defn sign [i]
+  (if (> i 0) 1 -1))
+
+(defn floorint [f]
+  (int (Math/floor f)))
+
+(defn any? [s]
+  (not (empty? (filter identity s))))
 
 ; Bytes ----------------------------------------------------------------------------
 (defn byte-seq [b]

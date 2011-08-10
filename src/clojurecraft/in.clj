@@ -427,6 +427,7 @@
 
 
 (defn -update-single-block [bot x y z type meta]
+  (println "Updating block" x y z "to be type" type)
   (dosync (let [chunk (chunk-containing x z (:chunks (:world bot)))
                 i (block-index-in-chunk x y z)]
             (when chunk
