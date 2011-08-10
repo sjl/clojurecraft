@@ -237,12 +237,12 @@
                           :y (-read-int conn)
                           :z (-read-int conn)
                           :moar (-read-int conn))]
-    (if (< 0 (:moar basepacket))
-      basepacket
+    (if (> (:moar basepacket) 0)
       (assoc basepacket
              :unknownx (-read-int conn)
              :unknowny (-read-int conn)
-             :unknownz (-read-int conn)))))
+             :unknownz (-read-int conn))
+      basepacket)))
 
 (defn- read-packet-mobspawn [bot conn]
   (assoc {}
@@ -430,7 +430,6 @@
 
 
 (defn -update-single-block [bot x y z type meta]
-  (println "Updating block" x y z "to be type" (block-types type))
   (dosync (let [chunk (chunk-containing x z (:chunks (:world bot)))
                 i (block-index-in-chunk x y z)]
             (when chunk
@@ -463,12 +462,10 @@
                        :metadataarray (-read-bytearray conn (:arraysize prearrays)))
         parse-coords (fn [s] [(top-4 s) (mid-4 s) (bottom-8 s)])
         coords (map parse-coords (:coordinatearray payload))]
-    (println "Reading a Multiple Block Change!")
     (dorun (map #(-update-single-block bot (get %1 0) (get %1 2) (get %1 1) %2 %3)
                 coords
                 (:typearray payload)
                 (:metadataarray payload)))
-    (println "Done with a Multiple Block Change!")
     payload))
 
 
@@ -644,7 +641,7 @@
                      :disconnectkick            read-packet-disconnectkick})
 
 ; Reading Wrappers -----------------------------------------------------------------
-(defn read-packet [bot prev prev-prev]
+(defn read-packet [bot prev prev-prev prev-prev-prev]
   (let [conn (:connection bot)
         packet-id-byte (to-unsigned (-read-byte conn))]
     (let [packet-id (when (not (nil? packet-id-byte))
@@ -663,12 +660,15 @@
       ; Handle packet
       (if (nil? packet-type)
         (do
-          (println (str "UNKNOWN PACKET TYPE: " (Integer/toHexString packet-id) packet-id
-                        " ---------- PREVIOUS: " prev))
+          (println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+          (println "UNKNOWN PACKET TYPE:" (Integer/toHexString packet-id) packet-id)
+          (println "THREE-AGO:" prev-prev-prev)
+          (println "TWO-AGO:" prev-prev)
+          (println "ONE-AGO:" prev)
           (/ 1 0))
         (let [payload (do ((packet-type packet-readers) bot conn))]
           (do
             (when (#{} packet-type)
               (println (str "--PACKET--> " packet-type)))
-            [[packet-type payload] prev]))))))
+            [[packet-type payload] prev prev-prev]))))))
 

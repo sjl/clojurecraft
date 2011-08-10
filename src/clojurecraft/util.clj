@@ -1,5 +1,6 @@
 (ns clojurecraft.util)
 
+; Logging---------------------------------------------------------------------------
 (defmacro l [& body]
   `(let [result# (~@body)]
      (println result#)
@@ -11,6 +12,8 @@
      (println (class result#))
      result#))
 
+
+; Other ----------------------------------------------------------------------------
 (defn invert [m]
   (apply assoc {} (mapcat reverse m)))
 
@@ -56,10 +59,9 @@
 (defn to-unsigned [b]
   (bit-and b 0xff))
 
-
 (defn top-4 [b]
   "Return the top four bits of a short.
-  
+
   XXXX............"
   (byte (bit-shift-right (bit-and b 0xf000) 12)))
 
@@ -71,7 +73,7 @@
 
 (defn bottom-8 [b]
   "Return the bottom eight bits of a short.
-  
+
   ........XXXXXXXX"
   (byte (bit-and b 0xff)))
 
