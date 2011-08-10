@@ -41,7 +41,7 @@ through your Minecraft client.
 Once your bot is in the world you're all set to play around.  At the moment the only
 action implemented is basic movement.  Move your bot around with ``act/move``::
 
-    (act/move bot 2 0 1)
+    (force (act/move bot 2 0 1))
 
 The numbers are the x, y, and z distance you wish to move.  For now you can't use the
 ``y`` argument -- you must always pass ``0``.
@@ -52,7 +52,7 @@ information if something goes wrong.
 
 Now try jumping::
 
-    (act/jump bot)
+    (force (act/jump bot))
 
 Clojurecraft isn't stable and is evolving quickly, but you can check out these docs
 to read about some of the design decisions.  As soon as you see a ``v1.0.0`` tag
