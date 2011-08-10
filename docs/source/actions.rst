@@ -1,8 +1,17 @@
 Actions
 =======
 
-Actions are functions that take a ``Bot`` object and some arguments and handle
-writing the packets to make the bot perform the action.
+Actions are functions that take a ``Bot`` object and some arguments, and return
+a delayed function that will handle writing the packets to your bot perform the
+action.
+
+If you want to make your bot perform an action immediately you should use ``force``
+to make it happen::
+
+    (force (clojurecraft.actions/jump bot))
+
+Technically you don't need to use ``force``, because the REPL's printing will force
+the result to be evaluated, but conceptually it's a good habit to get into.
 
 jump
 ----
