@@ -105,6 +105,6 @@
 ;
 ; packet-counts-in  -> (atom {:packet-type integer})
 ; packet-counts-out -> (atom {:packet-type integer})
-(defrecord Bot [connection outqueue player world event-handlers
-                packet-counts-in packet-counts-out])
+(defrecord Bot [connection outqueue actionqueue player world
+                event-handlers packet-counts-in packet-counts-out])
 

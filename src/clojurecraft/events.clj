@@ -11,8 +11,12 @@
 
 
 (defn- fire-handler [bot event-type & args]
-  (dorun (map #(apply (eval %) (into [bot] args))
-              (event-type @(:event-handlers bot)))))
+  (let [action-groups (map #(apply (eval %) (into [bot] args))
+                           (event-type @(:event-handlers bot)))
+        queue-action #(.put (:actionqueue bot) %)
+        queue-action-group #(map queue-action %)]
+    (println action-groups)
+    (dorun (map queue-action-group action-groups))))
 
 (defn fire-chat [bot message]
   (fire-handler bot :chat message))

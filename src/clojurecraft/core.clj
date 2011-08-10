@@ -90,6 +90,15 @@
             (write-packet bot packet-type payload))))))
   (println "done - output handler"))
 
+(defn action-handler [bot]
+  (let [conn (:connection bot)
+        actionqueue (:actionqueue bot)]
+    (while (nil? (:exit @conn))
+      (let [action (.poll actionqueue 1 TimeUnit/SECONDS)]
+        (when action
+          (force action)))))
+  (println "done - action handler"))
+
 
 (defn connect [server username]
   (let [username (or username (random-username))
@@ -98,8 +107,9 @@
         out (DataOutputStream. (.getOutputStream socket))
         conn (ref {:in in :out out})
         outqueue (LinkedBlockingQueue.)
+        actionqueue (LinkedBlockingQueue.)
         world (get-world server)
-        bot (Bot. conn outqueue nil world (ref {})
+        bot (Bot. conn outqueue actionqueue nil world (ref {})
                   (atom {}) (atom {}))]
 
     (println "connecting")
@@ -132,6 +142,9 @@
 
       (println "starting location updating handler")
       (.start (Thread. #(location-handler bot)))
+
+      (println "starting action handler")
+      (.start (Thread. #(action-handler bot)))
 
       (println "all systems go!")
 
