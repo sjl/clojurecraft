@@ -7,72 +7,6 @@ When you connect to a server you get a `Bot` object back.  You can connect with
 Once you've got a bot you can query it for data about its world and tell it to
 perform actions.
 
-Data Structures
-===============
-
-World data is shared between all the bots you create in a single process.  This helps
-keep memory usage down by not storing duplicate copies of chunk and entity
-information for each bot in the same world.
-
-Worlds
-------
-
-`World` objects have several pieces of data.  Please read the Transactions section to
-learn why the data is structured the way it is.
-
-`(:time world)` is a ref containing the current world time.
-
-`(:entities world)` is a ref containing a map of entity IDs to `Entity` refs.
-
-`(:chunks world)` is a ref containing a map of chunk coordinates ([x y z] vectors)
-to `Chunk` refs.
-
-Locations
----------
-
-`Location` objects represent the locations of entities in the world.  They have the
-following pieces of data:
-
-* `(:x location)`
-* `(:y location)`
-* `(:z location)`
-* `(:yaw location)`
-* `(:pitch location)`
-* `(:stance location)`
-* `(:onground location)`
-
-Entities
---------
-
-`Entity` objects represent a single entity in the world.  One of these is your bot's
-player.
-
-`(:eid entity)` is the ID of the entity.
-
-`(:loc entity)` is a `Location` object representing the location of the entity in the
-world.
-
-`(:despawned entity)` is a boolean that indicates whether the entity has despawned.
-You should never need to read this, but please read the Transactions section for the
-reason why it's included.
-
-Chunks
-------
-
-Blocks
-------
-
-Bots
-----
-
-`Bot` objects are your gateway to observing and interacting with the world.
-
-`(:world bot)` is a `World` object representing the bot's world.
-
-`(:player bot)` is a ref containing the `Entity` representing the bot.  This is just
-a shortcut so you don't have to pull it out of the `:entities` map in the bot's world
-all the time.
-
 Transactions
 ============
 
@@ -137,8 +71,17 @@ the packets to make the bot perform the action.
 The `move` action adjusts the location of the bot.  This lets it move around the
 world.
 
-At the moment it does not do any error checking, so moving too far at once or moving
-into a block will simply be rejected by the server without any warning.
+Right now you can't really use the `y` argument.  Use `clojurecraft.actions/jump`
+instead.
 
 This action is fairly low level.  Expect to see some fun path-finding
 algorithms/libraries in the future that will remove the need to call this directly.
+
+### jump
+
+`(clojurecraft.actions/jump bot)`
+
+Tells the bot to jump, if possible.
+
+Events
+======
