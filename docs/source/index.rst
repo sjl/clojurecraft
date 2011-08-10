@@ -15,7 +15,11 @@ Concepts:
    :maxdepth: 2
 
    quickstart
+   basics
    datastructures
+   transactions
+   actions
+   events
 
 
 Indices and tables
