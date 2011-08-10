@@ -100,7 +100,7 @@
         conn (ref {:in in :out out})
         outqueue (LinkedBlockingQueue.)
         world (get-world server)
-        bot (Bot. conn outqueue nil world
+        bot (Bot. conn outqueue nil world (ref {})
                   (atom {}) (atom {}))]
 
     (println "connecting")

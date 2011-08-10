@@ -100,8 +100,11 @@
 ;   Worlds themselves should never need to be updated after creation -- instead the
 ;   various refs inside them are updated.
 ;
+; event-handlers -> (ref {:event-type [handler ...]})
+;   A ref to a map of event handlers.
+;
 ; packet-counts-in  -> (atom {:packet-type integer})
 ; packet-counts-out -> (atom {:packet-type integer})
-(defrecord Bot [connection outqueue player world
+(defrecord Bot [connection outqueue player world event-handlers
                 packet-counts-in packet-counts-out])
 

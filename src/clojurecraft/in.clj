@@ -3,6 +3,7 @@
   (:use [clojurecraft.mappings])
   (:use [clojurecraft.chunks])
   (:require [clojurecraft.data])
+  (:require [clojurecraft.events :as events])
   (:import [clojurecraft.data Location Entity Chunk])
   (:import (java.util.zip Inflater)))
 
@@ -106,8 +107,10 @@
          :dimension (-read-byte conn)))
 
 (defn- read-packet-chat [bot conn]
-  (assoc {}
-         :message (-read-string-ucs2 conn)))
+  (let [payload (assoc {}
+                       :message (-read-string-ucs2 conn))]
+    (events/fire-chat bot (:message payload))
+    payload))
 
 (defn- read-packet-timeupdate [bot conn]
   (let [payload (assoc {}
