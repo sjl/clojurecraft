@@ -19,12 +19,12 @@ The first thing you need to do is create an event handling function::
 
 Then register the handler for the action::
 
-    (clojurecraft.events/add-handler bot :chat `jump-on-chat)
+    (clojurecraft.events/add-handler bot :chat #'jump-on-chat)
 
 Notice that you don't pass the function directly to the ``add-handler`` function.
-You pass a syntax quoted symbol to the function.  This is an extra character to type,
-but it means you can redefine the function in the REPL and your changes will take
-effect immediately in all of the currently running bots.
+You pass a symbol to the function.  This is two extra characters to type, but it
+means you can redefine the function in the REPL and your changes will take effect
+immediately in all of the currently running bots.
 
 Available Events
 ----------------

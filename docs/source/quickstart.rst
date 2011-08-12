@@ -6,6 +6,11 @@ Clone down the repo with Mercurial or Git::
     hg clone http://bitbucket.org/sjl/clojurecraft
     git clone http://github.com/sjl/clojurecraft.git
 
+Or if you don't want to bother you can just download and extract a tarball::
+
+    wget https://bitbucket.org/sjl/clojurecraft/get/tip.tar.gz -O clojurecraft.tar.gz
+    tar xzf clojurecraft.tar.gz
+
 Grab the dependencies using Leiningen (Cake will probably work too) and fire up
 a REPL::
 
