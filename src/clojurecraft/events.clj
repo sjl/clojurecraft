@@ -14,7 +14,7 @@
   (let [action-groups (map #(apply (deref %) (into [bot] args))
                            (event-type @(:event-handlers bot)))
         queue-action #(.put (:actionqueue bot) %)
-        queue-action-group #(map queue-action %)]
+        queue-action-group #(dorun (map queue-action %))]
     (dorun (map queue-action-group action-groups))))
 
 (defn fire-chat [bot message]
