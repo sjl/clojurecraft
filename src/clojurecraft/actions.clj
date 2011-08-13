@@ -1,5 +1,6 @@
 (ns clojurecraft.actions
   (:use [clojurecraft.util])
+  (:use [clojurecraft.out])
   (:require [clojurecraft.physics :as physics]))
 
 (defn move [bot x-change y-change z-change]
@@ -22,3 +23,6 @@
           (alter player assoc-in [:loc :onground] false)
           (alter player assoc :velocity physics/JUMP-VELOCITY))))))
 
+(defn chat [bot message]
+  (delay
+    (write-packet bot :chat {:message message})))

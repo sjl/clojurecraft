@@ -79,6 +79,9 @@
 ;
 ;   Don't ever touch this -- the writing thread will handle it.
 ;
+; username -> String
+;   The username of the bot.
+;
 ; outqueue -> LinkedBlockingQueue
 ;   A queue of packets to write, so we can coordinate the writes
 ;   to avoid mixing packets together.
@@ -105,6 +108,6 @@
 ;
 ; packet-counts-in  -> (atom {:packet-type integer})
 ; packet-counts-out -> (atom {:packet-type integer})
-(defrecord Bot [connection outqueue actionqueue player world
+(defrecord Bot [connection username outqueue actionqueue player world
                 event-handlers packet-counts-in packet-counts-out])
 
