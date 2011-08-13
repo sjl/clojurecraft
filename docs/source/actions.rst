@@ -55,3 +55,11 @@ instead.
 
 This action is fairly low level.  Expect to see some fun path-finding
 algorithms/libraries in the future that will remove the need to call this directly.
+
+respawn
+-------
+
+``(clojurecraft.actions/respawn bot)``
+
+The ``respawn`` action tells your bot to respawn.  Only send this if your bot has
+died, because I'm not sure what the vanilla server will do otherwise.

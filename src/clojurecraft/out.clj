@@ -59,7 +59,7 @@
   (-write-string-ucs2 conn message))
 
 (defn- write-packet-respawn [conn {world :world}]
-  (-write-bool conn world))
+  (-write-byte conn world))
 
 (defn- write-packet-player [conn {onground :onground}]
   (-write-bool conn onground))

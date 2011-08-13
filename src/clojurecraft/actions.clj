@@ -26,3 +26,7 @@
 (defn chat [bot message]
   (delay
     (write-packet bot :chat {:message message})))
+
+(defn respawn [bot]
+  (delay
+    (write-packet bot :respawn {:world 0}))) ; Always respawn in the normal (non-Nether) world for now.
