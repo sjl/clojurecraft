@@ -40,3 +40,16 @@ You can register handlers for the following events.
       [... actions ...])
 
 Chat events are fired when a chat message arrives.
+
+A few things to note when writing bots for the vanilla server:
+
+First, a "chat message" includes things like "foo joined/left the game.".  You can
+parse these and take appropriate action if you like.
+
+The other important point is that *you will receive your own messages*.  If you fire
+a chat action you'll get a message back for it!  A helpful function to use might be
+something like this::
+
+    (defn message-is-own? [bot message]
+      (clojure.contrib.string/substring? (str "<" (:username bot) ">")
+                                         message))
