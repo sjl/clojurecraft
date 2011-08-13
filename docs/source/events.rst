@@ -36,7 +36,7 @@ You can register handlers for the following events.
 
 ::
 
-    (defn chat-handler [message]
+    (defn chat-handler [bot message]
       [... actions ...])
 
 Chat events are fired when a chat message arrives.
@@ -53,3 +53,19 @@ something like this::
     (defn message-is-own? [bot message]
       (clojure.contrib.string/substring? (str "<" (:username bot) ">")
                                          message))
+
+``:dead``
+`````````
+
+::
+
+    (defn dead-handler [bot]
+      [... actions ...])
+
+This event is fired when your bot dies.
+
+You'll probably want to respawn when this happens::
+
+    (defn dead-handler [bot]
+      [(clojurecraft.actions/chat bot "WHY YOU DO THIS?")
+       (clojurecraft.actions/respawn bot)])

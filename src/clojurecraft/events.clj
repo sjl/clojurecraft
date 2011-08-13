@@ -17,6 +17,10 @@
         queue-action-group #(dorun (map queue-action %))]
     (dorun (map queue-action-group action-groups))))
 
+
 (defn fire-chat [bot message]
   (fire-handler bot :chat message))
+
+(defn fire-dead [bot]
+  (fire-handler bot :dead))
 

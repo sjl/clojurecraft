@@ -138,8 +138,11 @@
          :leftclick (-read-bool conn)))
 
 (defn- read-packet-updatehealth [bot conn]
-  (assoc {}
-         :health (-read-short conn)))
+  (let [payload (assoc {}
+                       :health (-read-short conn))]
+    (if (= (:health payload) 0)
+      (events/fire-dead bot))
+    payload))
 
 (defn- read-packet-respawn [bot conn]
   (assoc {}
@@ -327,9 +330,10 @@
          :pitch (-read-byte conn)))
 
 (defn- read-packet-entitystatus [bot conn]
-  (assoc {}
-         :eid (-read-int conn)
-         :entitystatus (-read-byte conn)))
+  (let [payload (assoc {}
+                       :eid (-read-int conn)
+                       :entitystatus (-read-byte conn))]
+    payload))
 
 (defn- read-packet-attachentity [bot conn]
   (assoc {}
