@@ -132,10 +132,11 @@
          :z (-read-int conn)))
 
 (defn- read-packet-useentity [bot conn]
-  (assoc {}
-         :user (-read-int conn)
-         :target (-read-int conn)
-         :leftclick (-read-bool conn)))
+  (let [payload (assoc {}
+                       :user (-read-int conn)
+                       :target (-read-int conn)
+                       :leftclick (-read-bool conn))]
+    payload))
 
 (defn- read-packet-updatehealth [bot conn]
   (let [payload (assoc {}

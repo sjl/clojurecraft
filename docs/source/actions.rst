@@ -42,6 +42,104 @@ jump
 
 Tells the bot to jump, if possible.
 
+look-to
+-------
+
+``(clojurecraft.actions/look-to bot pitch)``
+
+Changes the position of the bot's head.  ``pitch`` can be anywhere from ``-90`` to
+``90``.
+
+* ``-90``: looking straight up.
+* ``0``: looking straight ahead.
+* ``90``: looking straight down.
+
+look-up
+-------
+
+``(clojurecraft.actions/look-up bot)``
+
+Changes the position of the bot's head to look straight up.
+
+Exactly equivalent to ``(clojurecraft.actions/look-to bot -90.0)``.
+
+look-down
+---------
+
+``(clojurecraft.actions/look-down bot)``
+
+Changes the position of the bot's head to look straight down.
+
+Exactly equivalent to ``(clojurecraft.actions/look-to bot 90.0)``.
+
+look-straight
+-------------
+
+``(clojurecraft.actions/look-straight bot)``
+
+Changes the position of the bot's head to look straight ahead.
+
+Exactly equivalent to ``(clojurecraft.actions/look-to bot 0.0)``.
+
+turn-to
+-------
+
+``(clojurecraft.actions/turn-to bot yaw)``
+
+Changes the direction the bot is looking.  ``yaw`` can be anywhere from ``0`` to
+``359``.
+
+* ``0``: looking in the -z direction.
+* ``90``: looking in the -x direction.
+* ``180``: looking in the +z direction.
+* ``270``: looking in the +x direction.
+
+A few notes:
+
+* Changing your bot's yaw by too large an increment at once seems to be handled
+  weirdly by the vanilla client.  It will turn partway toward the destination yaw,
+  pause, and then turn the rest of the way.
+* Changing the direction the bot is looking affects the *head* of your bot, not
+  necessarily the *body*.  The body will rotate as much as is necessary to prevent
+  an Exorcist-style head-spin.  I don't know of a way to force the body to face
+  a certain direction at the moment, but I'll keep looking.
+
+turn-north
+----------
+
+``(clojurecraft.actions/turn-north bot)``
+
+Changes the direction the bot is looking to north.
+
+Exactly equivalent to ``(clojurecraft.actions/turn-to bot 90.0)``.
+
+turn-south
+----------
+
+``(clojurecraft.actions/turn-south bot)``
+
+Changes the direction the bot is looking to south.
+
+Exactly equivalent to ``(clojurecraft.actions/turn-to bot 270.0)``.
+
+turn-east
+---------
+
+``(clojurecraft.actions/turn-east bot)``
+
+Changes the direction the bot is looking to east.
+
+Exactly equivalent to ``(clojurecraft.actions/turn-to bot 180.0)``.
+
+turn-west
+---------
+
+``(clojurecraft.actions/turn-west bot)``
+
+Changes the direction the bot is looking to west.
+
+Exactly equivalent to ``(clojurecraft.actions/turn-to bot 0.0)``.
+
 move
 ----
 
