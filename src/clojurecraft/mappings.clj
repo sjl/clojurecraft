@@ -158,7 +158,7 @@
   0x5B :jackolantern
   0x5C :cake
   0x5D :repeater-off
-  0x5E :repeater-off
+  0x5E :repeater-on
   0x60 :hatch
 })
 (def block-ids (invert block-types))
