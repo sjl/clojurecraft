@@ -141,7 +141,7 @@
 (defn- read-packet-updatehealth [bot conn]
   (let [payload (assoc {}
                        :health (-read-short conn))]
-    (if (= (:health payload) 0)
+    (if (<= (:health payload) 0)
       (events/fire-dead bot))
     payload))
 
