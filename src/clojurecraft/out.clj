@@ -1,41 +1,42 @@
 (ns clojurecraft.out
   (:use [clojurecraft.util])
-  (:use [clojurecraft.mappings]))
+  (:use [clojurecraft.mappings])
+  (:import (java.io DataOutputStream)))
 
 ; Writing Data ---------------------------------------------------------------------
 (defn- -write-byte [conn i]
-  (io! (.writeByte (:out @conn) (int i))))
+  (io! (.writeByte ^DataOutputStream (:out @conn) (int i))))
 
 (defn- -write-bytearray [conn ba]
-  (io! (.write (:out @conn) (byte-array (map byte ba)) 0 (count ba))))
+  (io! (.write ^DataOutputStream (:out @conn) (byte-array (map byte ba)) 0 (count ba))))
 
 (defn- -write-short [conn i]
-  (io! (.writeShort (:out @conn) (short i))))
+  (io! (.writeShort ^DataOutputStream (:out @conn) (short i))))
 
 (defn- -write-shortarray [conn sa]
   (doall (map #(-write-short %) sa)))
 
 (defn- -write-int [conn i]
-  (io! (.writeInt (:out @conn) (int i))))
+  (io! (.writeInt ^DataOutputStream (:out @conn) (int i))))
 
 (defn- -write-long [conn i]
-  (io! (.writeLong (:out @conn) (long i))))
+  (io! (.writeLong ^DataOutputStream (:out @conn) (long i))))
 
 (defn- -write-double [conn i]
-  (io! (.writeDouble (:out @conn) (double i))))
+  (io! (.writeDouble ^DataOutputStream (:out @conn) (double i))))
 
 (defn- -write-float [conn i]
-  (io! (.writeFloat (:out @conn) (float i))))
+  (io! (.writeFloat ^DataOutputStream (:out @conn) (float i))))
 
 (defn- -write-string-utf8 [conn s]
-  (io! (.writeUTF (:out @conn) s)))
+  (io! (.writeUTF ^DataOutputStream (:out @conn) s)))
 
 (defn- -write-string-ucs2 [conn s]
   (-write-short conn (count s))
-  (io! (.writeChars (:out @conn) s)))
+  (io! (.writeChars ^DataOutputStream (:out @conn) s)))
 
 (defn- -write-bool [conn b]
-  (io! (.writeBoolean (:out @conn) b)))
+  (io! (.writeBoolean ^DataOutputStream (:out @conn) b)))
 
 (defn- -write-metadata [conn m]
   ; TODO: Implement this.
@@ -267,7 +268,7 @@
 
 ; Writing Wrappers -----------------------------------------------------------------
 (defn- flushc [conn]
-  (doto (:out @conn) (.flush)))
+  (doto ^DataOutputStream (:out @conn) (.flush)))
 
 (defn write-packet [bot packet-type payload]
   (let [conn (:connection bot)

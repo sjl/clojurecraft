@@ -2,6 +2,7 @@
   (:use [clojurecraft.util])
   (:use [clojurecraft.mappings])
   (:use [clojurecraft.chunks])
+  (:import (java.io DataInputStream))
   (:require [clojurecraft.data])
   (:require [clojurecraft.events :as events])
   (:import [clojurecraft.data Location Entity Chunk])
@@ -10,7 +11,7 @@
 ; Reading Data ---------------------------------------------------------------------
 (defn- -read-byte-bare [conn]
   (io!
-    (let [b (.readByte (:in @conn))]
+    (let [b (.readByte ^DataInputStream (:in @conn))]
       b)))
 
 (defn- -read-byte [conn]
@@ -19,7 +20,7 @@
 (defn- -read-bytearray-bare [conn size]
   (io!
     (let [ba (byte-array size)]
-         (.read (:in @conn) ba 0 size)
+         (.read ^DataInputStream (:in @conn) ba 0 size)
          ba)))
 
 (defn- -read-bytearray [conn size]
@@ -27,17 +28,17 @@
 
 (defn- -read-int [conn]
   (io!
-    (let [i (.readInt (:in @conn))]
+    (let [i (.readInt ^DataInputStream (:in @conn))]
       (Integer. i))))
 
 (defn- -read-long [conn]
   (io!
-    (let [l (.readLong (:in @conn))]
+    (let [l (.readLong ^DataInputStream (:in @conn))]
       (Long. l))))
 
 (defn- -read-short [conn]
   (io!
-    (let [s (.readShort (:in @conn))]
+    (let [s (.readShort ^DataInputStream (:in @conn))]
       (Short. s))))
 
 (defn- -read-shortarray [conn size]
@@ -45,28 +46,28 @@
 
 (defn- -read-bool [conn]
   (io!
-    (let [b (.readBoolean (:in @conn))]
+    (let [b (.readBoolean ^DataInputStream (:in @conn))]
       (Boolean. b))))
 
 (defn- -read-double [conn]
   (io!
-    (let [d (.readDouble (:in @conn))]
+    (let [d (.readDouble ^DataInputStream (:in @conn))]
       (Double. d))))
 
 (defn- -read-float [conn]
   (io!
-    (let [f (.readFloat (:in @conn))]
+    (let [f (.readFloat ^DataInputStream (:in @conn))]
       (Float. f))))
 
 (defn- -read-string-utf8 [conn]
   (io!
-    (let [s (.readUTF (:in @conn))]
+    (let [s (.readUTF ^DataInputStream (:in @conn))]
       s)))
 
 (defn- -read-string-ucs2 [conn]
   (io!
-    (let [str-len (.readShort (:in @conn))
-          s (doall (apply str (repeatedly str-len #(.readChar (:in @conn)))))]
+    (let [str-len (.readShort ^DataInputStream (:in @conn))
+          s (doall (apply str (repeatedly str-len #(.readChar ^DataInputStream (:in @conn)))))]
       s)))
 
 (defn- -read-metadata [conn]
@@ -400,7 +401,7 @@
         (alter chunks assoc coords chunk)
         chunk)))
 
-(defn- -update-world-with-data [{{chunks :chunks} :world} x y z types meta light sky]
+(defn- -update-world-with-data [{{chunks :chunks} :world} x y z ^bytes types meta light sky]
   (dosync (let [chunk-coords (coords-of-chunk-containing x z)
                 chunk (-get-or-make-chunk chunks chunk-coords)
                 start-index (block-index-in-chunk x y z)]

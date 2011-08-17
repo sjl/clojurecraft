@@ -70,7 +70,7 @@
 
 (defn location-handler [bot]
   (let [conn (:connection bot)
-        outqueue (:outqueue bot)]
+        outqueue ^LinkedBlockingQueue (:outqueue bot)]
     (while (nil? (:exit @conn))
       (let [player (:player bot)
             location (:loc @player)]
@@ -82,7 +82,7 @@
 
 (defn output-handler [bot]
   (let [conn (:connection bot)
-        outqueue (:outqueue bot)]
+        outqueue ^LinkedBlockingQueue (:outqueue bot)]
     (while (nil? (:exit @conn))
       (let [packet (.poll outqueue 1 TimeUnit/SECONDS)]
         (when packet
@@ -92,7 +92,7 @@
 
 (defn action-handler [bot]
   (let [conn (:connection bot)
-        actionqueue (:actionqueue bot)]
+        actionqueue ^LinkedBlockingQueue (:actionqueue bot)]
     (while (nil? (:exit @conn))
       (let [action (.poll actionqueue 1 TimeUnit/SECONDS)]
         (when action
@@ -106,7 +106,7 @@
         in (DataInputStream. (.getInputStream socket))
         out (DataOutputStream. (.getOutputStream socket))
         conn (ref {:in in :out out})
-        outqueue (LinkedBlockingQueue.)
+        outqueue ^LinkedBlockingQueue (LinkedBlockingQueue.)
         actionqueue (LinkedBlockingQueue.)
         world (get-world server)
         bot (Bot. conn username outqueue actionqueue nil world (ref {})
