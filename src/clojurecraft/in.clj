@@ -443,7 +443,6 @@
                      :types (replace-array-index (:types @chunk) i type)
                      :metadata (replace-array-index (:metadata @chunk) i meta))))))
 
-
 (defn- read-packet-blockchange [bot conn]
   (let [data (assoc {}
                     :x (-read-int conn)
@@ -455,7 +454,6 @@
                           (:x data) (:y data) (:z data)
                           (:blocktype data) (:blockmetadata data))
     data))
-
 
 (defn- read-packet-multiblockchange [bot conn]
   (let [prearrays (assoc {}
