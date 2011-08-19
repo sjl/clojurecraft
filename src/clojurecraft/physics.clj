@@ -17,7 +17,7 @@
 
 
 (defn player-bounds [{x :x y :y z :z}]
-  [(map floorint [(- x CHAR-RADIUS) y (- z CHAR-RADIUS)]) 
+  [(map floorint [(- x CHAR-RADIUS) y (- z CHAR-RADIUS)])
    (map floorint [(+ x CHAR-RADIUS) (+ y CHAR-HEIGHT-TOP) (+ z CHAR-RADIUS)])])
 
 
@@ -32,14 +32,15 @@
     (max velocity (* -1 MAX-HORIZONTAL-VELOCITY))))
 
 
+(def is-solid (comp not non-solid-blocks :type))
+(defn coords-are-solid [bot [x y z]]
+  (is-solid (chunks/block bot x y z)))
+
 (defn collision [bot [min-x min-y min-z] [max-x max-y max-z]]
   (let [block-coords (cartesian-product (range min-x (+ 1 max-x))
                                         (range min-y (+ 1 max-y))
-                                        (range min-z (+ 1 max-z)))
-        is-solid (comp not non-solid-blocks :type)
-        coords-are-solid (fn [[x y z]]
-                           (is-solid (chunks/block bot x y z)))]
-    (any? (map coords-are-solid block-coords))))
+                                        (range min-z (+ 1 max-z)))]
+    (any? (map coords-are-solid (cycle [bot]) block-coords))))
 
 
 (defn resolve-collision-y [y velocity]

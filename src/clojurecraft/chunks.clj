@@ -4,6 +4,14 @@
   (:require [clojurecraft.data])
   (:import [clojurecraft.data Block]))
 
+(defn- get-chunk
+  "Get a chunk, making sure it has been forced."
+  [chunks coords]
+  (let [possible-chunk (@chunks coords)]
+    (when possible-chunk
+      (force @possible-chunk)
+      possible-chunk)))
+
 (defn coords-of-chunk-containing [x z]
   [(bit-shift-right x 4)
    (bit-shift-right z 4)])
@@ -18,10 +26,10 @@
 
 (defn block-from-chunk [x y z chunk]
   (let [i (block-index-in-chunk x y z)
-        block-type (aget (:types @chunk) i)
-        block-meta (aget (:metadata @chunk) i)
-        block-light (aget (:light @chunk) i)
-        block-sky-light (aget (:sky-light @chunk) i)]
+        block-type (aget ^bytes (:types (force @chunk)) i)
+        block-meta (aget ^bytes (:metadata (force @chunk)) i)
+        block-light (aget ^bytes (:light (force @chunk)) i)
+        block-sky-light (aget ^bytes (:sky-light (force @chunk)) i)]
     (Block. [x y z]
             (block-types (int block-type))
             block-meta
@@ -29,7 +37,7 @@
             block-sky-light)))
 
 (defn chunk-containing [x z chunks]
-  (@chunks (coords-of-chunk-containing x z)))
+  (get-chunk chunks (coords-of-chunk-containing x z)))
 
 (defn- -block [x y z chunks]
   (block-from-chunk x y z (chunk-containing x z chunks)))

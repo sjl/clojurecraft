@@ -52,7 +52,8 @@
     (loop [prevs [nil nil nil]]
       (when (nil? (:exit @conn))
         (recur (read-packet bot (get prevs 0) (get prevs 1) (get prevs 2))))))
-  (println "done - input handler"))
+  (println "done - input handler")
+  (println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
 
 
 (defn update-location [bot]
@@ -78,7 +79,8 @@
           (.put outqueue [:playerpositionlook location])
           (update-location bot))
         (Thread/sleep 50))))
-  (println "done - location handler"))
+  (println "done - location handler")
+  (println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
 
 (defn output-handler [bot]
   (let [conn (:connection bot)
@@ -88,7 +90,8 @@
         (when packet
           (let [[packet-type, payload] packet]
             (write-packet bot packet-type payload))))))
-  (println "done - output handler"))
+  (println "done - output handler")
+  (println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
 
 (defn action-handler [bot]
   (let [conn (:connection bot)
@@ -97,7 +100,8 @@
       (let [action (.poll actionqueue 1 TimeUnit/SECONDS)]
         (when action
           (force action)))))
-  (println "done - action handler"))
+  (println "done - action handler")
+  (println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
 
 
 (defn connect [server username]

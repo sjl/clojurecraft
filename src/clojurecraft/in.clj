@@ -8,6 +8,9 @@
   (:import [clojurecraft.data Location Entity Chunk])
   (:import (java.util.zip Inflater)))
 
+(def FULL-CHUNK (* 16 16 128))
+(def BLANK-CHUNK-ARRAY (byte-array FULL-CHUNK))
+
 ; Reading Data ---------------------------------------------------------------------
 (defn- -read-byte-bare [conn]
   (io!
@@ -367,31 +370,6 @@
                (conj nibbles bottom-byte top-byte)
                (subvec data 1))))))
 
-(defn- -read-packet-mapchunk-decode [predata data-ba]
-  (let [len (* (:sizex predata) (:sizey predata) (:sizez predata))
-        data (into (vector-of :byte) data-ba) ; Make the data a vector for easier parsing.
-        block-types (byte-array (subvec data 0 len))
-        data (subvec data len)]
-    (let [[block-metadata data] (-parse-nibbles len data)
-          [block-light data] (-parse-nibbles len data)
-          [sky-light data] (-parse-nibbles len data)]
-      [block-types block-metadata block-light sky-light])))
-
-(defn- -read-packet-mapchunk-chunkdata [conn predata]
-  (let [raw-data (-read-bytearray-bare conn (:compressedsize predata))
-        buffer (byte-array (/ (* 5
-                                 (:sizex predata)
-                                 (:sizey predata)
-                                 (:sizez predata)) 2))
-        decompressor (Inflater.)]
-    (.setInput decompressor raw-data 0 (:compressedsize predata))
-    (.inflate decompressor buffer)
-    (.end decompressor)
-    buffer))
-
-
-(def FULL-CHUNK (* 16 16 128))
-(def BLANK-CHUNK-ARRAY (byte-array FULL-CHUNK))
 (defn- -get-or-make-chunk [chunks coords]
   (or (@chunks coords)
       (let [chunk (ref (Chunk. BLANK-CHUNK-ARRAY
@@ -401,47 +379,82 @@
         (alter chunks assoc coords chunk)
         chunk)))
 
-(defn- -update-world-with-data [{{chunks :chunks} :world} x y z ^bytes types meta light sky]
-  (dosync (let [chunk-coords (coords-of-chunk-containing x z)
-                chunk (-get-or-make-chunk chunks chunk-coords)
-                start-index (block-index-in-chunk x y z)]
-            (if (= (alength types) FULL-CHUNK)
-              (alter chunk assoc ; Short-circuit for speed if we have a full chunk.
-                     :types types
-                     :metadata meta
-                     :light light
-                     :skylight sky)
-              (alter chunk assoc ; Otherwise: sadness.
-                     :types (replace-array-slice (:types @chunk) start-index types)
-                     :metadata (replace-array-slice (:metadata @chunk) start-index meta)
-                     :light (replace-array-slice (:light @chunk) start-index light)
-                     :skylight (replace-array-slice (:sky-light @chunk) start-index sky))))))
+(defn- -decode-mapchunk [postdata data-ba]
+  (let [len (* (:sizex postdata) (:sizey postdata) (:sizez postdata))
+        data (into (vector-of :byte) data-ba) ; Make the data a vector for easier parsing.
+        block-types (byte-array (subvec data 0 len))
+        data (subvec data len)]
+    (let [[block-metadata data] (-parse-nibbles len data)
+          [block-light data] (-parse-nibbles len data)
+          [sky-light data] (-parse-nibbles len data)]
+      [block-types block-metadata block-light sky-light])))
+
+(defn- -decompress-mapchunk [postdata]
+  (let [buffer (byte-array (/ (* 5
+                                 (:sizex postdata)
+                                 (:sizey postdata)
+                                 (:sizez postdata)) 2))
+        decompressor (Inflater.)]
+    (.setInput decompressor (:raw-data postdata) 0 (:compressedsize postdata))
+    (.inflate decompressor buffer)
+    (.end decompressor)
+    buffer))
+
+(defn- -read-mapchunk-predata [conn]
+  (assoc {}
+         :x (-read-int conn)
+         :y (-read-short conn)
+         :z (-read-int conn)
+         :sizex (+ 1 (-read-byte conn))
+         :sizey (+ 1 (-read-byte conn))
+         :sizez (+ 1 (-read-byte conn))
+         :compressedsize (-read-int conn)))
+
+
+(defn- -chunk-from-full-data [postdata]
+  (let [decompressed-data (-decompress-mapchunk postdata)
+        [types meta light sky] (-decode-mapchunk postdata decompressed-data)] ; Note: These are all byte-array's!
+    (Chunk. types meta light sky)))
+
+(defn- -chunk-from-partial-data [{{chunks :chunks} :world} postdata]
+  (let [x (:x postdata)
+        y (:y postdata)
+        z (:z postdata)
+        decompressed-data (-decompress-mapchunk postdata)
+        [types meta light sky] (-decode-mapchunk postdata decompressed-data)  ; Note: These are all byte-array's!
+        chunk-coords (coords-of-chunk-containing x z)
+        chunk (force (-get-or-make-chunk chunks chunk-coords))
+        start-index (block-index-in-chunk x y z)]
+    (Chunk. (replace-array-slice (:types (force @chunk)) start-index types)
+            (replace-array-slice (:metadata (force @chunk)) start-index meta)
+            (replace-array-slice (:light (force @chunk)) start-index light)
+            (replace-array-slice (:sky-light (force @chunk)) start-index sky))))
 
 (defn- read-packet-mapchunk [bot conn]
-  (time (let [predata (assoc {}
-                       :x (-read-int conn)
-                       :y (-read-short conn)
-                       :z (-read-int conn)
-                       :sizex (+ 1 (-read-byte conn))
-                       :sizey (+ 1 (-read-byte conn))
-                       :sizez (+ 1 (-read-byte conn))
-                       :compressedsize (-read-int conn))]
-    (let [decompressed-data (-read-packet-mapchunk-chunkdata conn predata)
-          decoded-data (-read-packet-mapchunk-decode predata decompressed-data)
-          [types meta light sky] decoded-data] ; Note: These are all byte-array's!
-      (-update-world-with-data bot
-                               (:x predata) (:y predata) (:z predata)
-                               types meta light sky)
-      (assoc predata :data decompressed-data)))))
+  (time (let [predata (-read-mapchunk-predata conn)
+              postdata (assoc predata :raw-data (-read-bytearray-bare conn (:compressedsize predata)))
+              chunk-size (* (:sizex postdata) (:sizey postdata) (:sizez postdata))
+              is-full-chunk (= FULL-CHUNK chunk-size)
+              chunk-coords (coords-of-chunk-containing (:x postdata) (:z postdata))]
+          (dosync (alter (:chunks (:world bot))
+                         assoc chunk-coords (if is-full-chunk
+                                              (ref (delay (-chunk-from-full-data postdata)))
+                                              (ref (-chunk-from-partial-data bot postdata))))))))
 
+
+
+(defn update-delayed [chunk index type meta]
+  (let [chunk (force chunk)]
+    (assoc chunk
+           :types (replace-array-index (:types chunk) index type)
+           :metadata (replace-array-index (:metadata chunk) index meta))))
 
 (defn -update-single-block [bot x y z type meta]
-  (dosync (let [chunk (chunk-containing x z (:chunks (:world bot)))
-                i (block-index-in-chunk x y z)]
-            (when chunk
-              (alter chunk assoc
-                     :types (replace-array-index (:types @chunk) i type)
-                     :metadata (replace-array-index (:metadata @chunk) i meta))))))
+  (dosync
+    (let [chunk (chunk-containing x z (:chunks (:world bot)))
+          i (block-index-in-chunk x y z)]
+      (when chunk
+        (alter chunk update-delayed i type meta)))))
 
 (defn- read-packet-blockchange [bot conn]
   (let [data (assoc {}
