@@ -9,7 +9,13 @@ change.**
 
 Check out the :doc:`Quick Start Guide </quickstart>` if you want to poke around.
 
-Concepts:
+* Mercurial Repo: http://bitbucket.org/sjl/clojurecraft/
+* Git Repo: http://github.com/sjl/clojurecraft/
+* Documentation: http://clojurecraft.rtfd.org/
+* Issue Tracker: http://github.com/sjl/clojurecraft/issues/
+
+Table of Contents
+-----------------
 
 .. toctree::
    :maxdepth: 2
@@ -21,11 +27,3 @@ Concepts:
    actions
    events
    loops
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`search`
-
