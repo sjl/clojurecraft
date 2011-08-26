@@ -20,6 +20,7 @@ Concepts:
    transactions
    actions
    events
+   loops
 
 
 Indices and tables

@@ -106,6 +106,9 @@
 ; event-handlers -> (ref {:event-type [handler ...]})
 ;   A ref to a map of event handlers.
 ;
+; loops -> (ref {loop-id :running ...})
+;   A ref to a map of loop-ids -> loop-statuses.
+;
 ; packet-counts-in  -> (atom {:packet-type integer})
 ; packet-counts-out -> (atom {:packet-type integer})
 (defrecord Bot [connection username outqueue actionqueue player world

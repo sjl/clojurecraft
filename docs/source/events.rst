@@ -1,7 +1,8 @@
 Events
 ======
 
-The main way you'll interact with your Clojurecraft bots is through event handlers.
+One of the main ways your Clojurecraft bots will interact with the world is through
+event handlers.
 
 Event handlers are functions you create that respond to events that happen in the
 Minecraft world.  They return a list of Actions that you want your bot to perform.

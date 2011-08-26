@@ -5,6 +5,9 @@ Actions are functions that take a ``Bot`` object and some arguments, and return
 a delayed function that will handle writing the packets to your bot perform the
 action.
 
+Performing Actions
+------------------
+
 If you want to make your bot perform an action immediately you should use ``force``
 to make it happen::
 
@@ -13,8 +16,14 @@ to make it happen::
 Technically you don't need to use ``force``, because the REPL's printing will force
 the result to be evaluated, but conceptually it's a good habit to get into.
 
+Available Actions
+-----------------
+
+There are a number of actions your bots can perform.  More will be added in the
+future.
+
 chat
-----
+~~~~
 
 ``(clojurecraft.actions/chat bot message)``
 
@@ -36,14 +45,14 @@ handle it because there are multiple options you might want:
 You might also be writing a bot for a modded server that allows longer messages.
 
 jump
-----
+~~~~
 
 ``(clojurecraft.actions/jump bot)``
 
 Tells the bot to jump, if possible.
 
 look-to
--------
+~~~~~~~
 
 ``(clojurecraft.actions/look-to bot pitch)``
 
@@ -55,7 +64,7 @@ Changes the position of the bot's head.  ``pitch`` can be anywhere from ``-90`` 
 * ``90``: looking straight down.
 
 look-up
--------
+~~~~~~~
 
 ``(clojurecraft.actions/look-up bot)``
 
@@ -64,7 +73,7 @@ Changes the position of the bot's head to look straight up.
 Exactly equivalent to ``(clojurecraft.actions/look-to bot -90.0)``.
 
 look-down
----------
+~~~~~~~~~
 
 ``(clojurecraft.actions/look-down bot)``
 
@@ -73,7 +82,7 @@ Changes the position of the bot's head to look straight down.
 Exactly equivalent to ``(clojurecraft.actions/look-to bot 90.0)``.
 
 look-straight
--------------
+~~~~~~~~~~~~~
 
 ``(clojurecraft.actions/look-straight bot)``
 
@@ -82,7 +91,7 @@ Changes the position of the bot's head to look straight ahead.
 Exactly equivalent to ``(clojurecraft.actions/look-to bot 0.0)``.
 
 turn-to
--------
+~~~~~~~
 
 ``(clojurecraft.actions/turn-to bot yaw)``
 
@@ -105,7 +114,7 @@ A few notes:
   a certain direction at the moment, but I'll keep looking.
 
 turn-north
-----------
+~~~~~~~~~~
 
 ``(clojurecraft.actions/turn-north bot)``
 
@@ -114,7 +123,7 @@ Changes the direction the bot is looking to north.
 Exactly equivalent to ``(clojurecraft.actions/turn-to bot 90.0)``.
 
 turn-south
-----------
+~~~~~~~~~~
 
 ``(clojurecraft.actions/turn-south bot)``
 
@@ -123,7 +132,7 @@ Changes the direction the bot is looking to south.
 Exactly equivalent to ``(clojurecraft.actions/turn-to bot 270.0)``.
 
 turn-east
----------
+~~~~~~~~~
 
 ``(clojurecraft.actions/turn-east bot)``
 
@@ -132,7 +141,7 @@ Changes the direction the bot is looking to east.
 Exactly equivalent to ``(clojurecraft.actions/turn-to bot 180.0)``.
 
 turn-west
----------
+~~~~~~~~~
 
 ``(clojurecraft.actions/turn-west bot)``
 
@@ -141,7 +150,7 @@ Changes the direction the bot is looking to west.
 Exactly equivalent to ``(clojurecraft.actions/turn-to bot 0.0)``.
 
 move
-----
+~~~~
 
 ``(clojurecraft.actions/move bot x y z)``
 
@@ -155,7 +164,7 @@ This action is fairly low level.  Expect to see some fun path-finding
 algorithms/libraries in the future that will remove the need to call this directly.
 
 respawn
--------
+~~~~~~~
 
 ``(clojurecraft.actions/respawn bot)``
 
