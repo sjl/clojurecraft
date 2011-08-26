@@ -3,6 +3,12 @@
   (:use [clojurecraft.out])
   (:require [clojurecraft.physics :as physics]))
 
+(defn handle-action-group [bot action-group]
+  (let [queue-action #(.put (:actionqueue bot) %)
+        queue-action-group #(dorun (map queue-action %))]
+    (queue-action-group action-group)))
+
+
 (defn move [bot x-change y-change z-change]
   (delay
     (let [player (:player bot)]

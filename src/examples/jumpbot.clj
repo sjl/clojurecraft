@@ -1,6 +1,7 @@
 (ns examples.jumpbot
   (:require [clojurecraft.core :as core])
   (:require [clojurecraft.events :as events])
+  (:require [clojurecraft.loops :as loops])
   (:require [clojurecraft.actions :as actions]))
 
 (defn jump [bot]
@@ -14,6 +15,6 @@
 (defn make-jumpbot [server username]
   (let [bot (core/connect server username)]
     (events/add-handler bot :dead #'handle-dead)
-    (events/add-loop bot #'jump 3000 :jump-loop)
+    (loops/add-loop bot #'jump 3000 :jump-loop)
     bot))
 

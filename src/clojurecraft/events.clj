@@ -1,12 +1,5 @@
-(ns clojurecraft.events)
-
-; Action Performing ----------------------------------------------------------------
-(defn- handle-action-group [bot action-group]
-  (println action-group)
-  (let [queue-action #(.put (:actionqueue bot) %)
-        queue-action-group #(dorun (map queue-action %))]
-    (queue-action-group action-group)))
-
+(ns clojurecraft.events
+  (:use [clojurecraft.actions :only [handle-action-group]]))
 
 ; Event Handlers -------------------------------------------------------------------
 (defn- fire-handler [bot event-type & args]
