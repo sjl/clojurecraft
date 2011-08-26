@@ -89,7 +89,8 @@
       (let [packet (.poll outqueue 1 TimeUnit/SECONDS)]
         (when packet
           (let [[packet-type, payload] packet]
-            (write-packet bot packet-type payload))))))
+            (write-packet bot packet-type payload)))))
+    (write-packet bot :disconnectkick {:reason "Bye!"}))
   (println "done - output handler")
   (println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
 
