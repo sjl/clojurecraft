@@ -113,8 +113,8 @@
         outqueue ^LinkedBlockingQueue (LinkedBlockingQueue.)
         actionqueue (LinkedBlockingQueue.)
         world (get-world server)
-        bot (Bot. conn username outqueue actionqueue nil world (ref {})
-                  (atom {}) (atom {}))]
+        bot (Bot. conn username outqueue actionqueue nil world
+                  (ref {}) (ref {}) (atom {}) (atom {}))]
 
     (println "connecting")
 
