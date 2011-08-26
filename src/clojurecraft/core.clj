@@ -6,7 +6,7 @@
   (:use [clojure.contrib.pprint :only (pprint)])
   (:require [clojurecraft.chunks :as chunks])
   (:require [clojurecraft.physics :as physics])
-  (:require [clojurecraft.actions :as act])
+  (:require [clojurecraft.actions :as actions])
   (:require (clojurecraft.data))
   (:import [clojurecraft.data Location Entity Block Chunk World Bot])
   (:import (java.net Socket)
@@ -100,7 +100,7 @@
     (while (nil? (:exit @conn))
       (let [action (.poll actionqueue 1 TimeUnit/SECONDS)]
         (when action
-          (force action)))))
+          (actions/perform action)))))
   (println "done - action handler")
   (println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
 
