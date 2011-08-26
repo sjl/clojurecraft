@@ -2,19 +2,19 @@ Actions
 =======
 
 Actions are functions that take a ``Bot`` object and some arguments, and return
-a delayed function that will handle writing the packets to your bot perform the
-action.
+a map representing the action.
+
+They return a map instead of actually performing the action to make it easier to unit
+test your event handlers and loops.  This also makes them pure functions that can be
+retried in transactions.
 
 Performing Actions
 ------------------
 
-If you want to make your bot perform an action immediately you should use ``force``
-to make it happen::
+If you want to make your bot perform an action immediately you should use
+``perform!`` to make it happen::
 
-    (force (clojurecraft.actions/jump bot))
-
-Technically you don't need to use ``force``, because the REPL's printing will force
-the result to be evaluated, but conceptually it's a good habit to get into.
+    (clojurecraft.actions/perform! (clojurecraft.actions/jump bot))
 
 Available Actions
 -----------------

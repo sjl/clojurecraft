@@ -30,11 +30,11 @@ a normal Minecraft client so you can watch your bot.
 
 Now you can go back to your REPL and get started.  Import the things you'll need::
 
-    (require '(clojurecraft [core :as cc] [actions :as act] [events :as es]))
+    (require '(clojurecraft [core :as core] [actions :as actions]))
 
 Create a bot connected to your local server::
 
-    (def bot (cc/connect cc/minecraft-local "desired_username"))
+    (def bot (core/connect core/minecraft-local "desired_username"))
 
 Right now Clojurecraft doesn't support authentication, so it's turned off on the
 bundled server and you can choose any username you like.  You can pass ``nil``
@@ -44,9 +44,9 @@ Give your bot a little time to connect.  You should see it appear in the world
 through your Minecraft client.
 
 Once your bot is in the world you're all set to play around.  At the moment the only
-action implemented is basic movement.  Move your bot around with ``act/move``::
+action implemented is basic movement.  Move your bot around with ``actions/move``::
 
-    (force (act/move bot 2 0 1))
+    (actions/perform! (actions/move bot 2 0 1))
 
 The numbers are the x, y, and z distance you wish to move.  For now you can't use the
 ``y`` argument -- you must always pass ``0``.
@@ -57,7 +57,7 @@ information if something goes wrong.
 
 Now try jumping::
 
-    (force (act/jump bot))
+    (actions/perform! (actions/jump bot))
 
 Clojurecraft isn't stable and is evolving quickly, but you can check out these docs
 to read about some of the design decisions.  As soon as you see a ``v1.0.0`` tag
