@@ -100,7 +100,7 @@
     (while (nil? (:exit @conn))
       (let [action (.poll actionqueue 1 TimeUnit/SECONDS)]
         (when action
-          (actions/perform action)))))
+          (actions/perform! action)))))
   (println "done - action handler")
   (println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
 

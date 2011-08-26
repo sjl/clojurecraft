@@ -51,7 +51,7 @@
   (write-packet bot :respawn {:world 0})) ; Always respawn in the normal (non-Nether) world for now.
 
 
-(defn perform [action]
+(defn perform! [action]
   (let [performer ({:move move!
                     :jump jump!
                     :chat chat!
