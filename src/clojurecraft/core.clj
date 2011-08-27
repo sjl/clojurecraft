@@ -44,7 +44,7 @@
   (write-packet bot :login {:version 14 :username username})
 
   ; Get login
-  (get (read-packet bot nil nil nil) 1))
+  (get (get (read-packet bot nil nil nil) 0) 1))
 
 
 (defn input-handler [bot]
