@@ -11,6 +11,13 @@
 (def FULL-CHUNK (* 16 16 128))
 (def BLANK-CHUNK-ARRAY (byte-array FULL-CHUNK))
 
+; Convenience Functions ------------------------------------------------------------
+(defn- blank-entity []
+  (Entity. nil
+           (Location. nil nil nil nil nil nil nil)
+           nil nil false 0.0))
+
+
 ; Reading Data ---------------------------------------------------------------------
 (defn- -read-byte-bare [conn]
   (io!
@@ -209,15 +216,32 @@
          :action (-read-byte conn)))
 
 (defn- read-packet-namedentityspawn [bot conn]
-  (assoc {}
-         :eid (-read-int conn)
-         :playername (-read-string-ucs2 conn)
-         :x (-read-int conn)
-         :y (-read-int conn)
-         :z (-read-int conn)
-         :rotation (-read-byte conn)
-         :pitch (-read-byte conn)
-         :currentitem (-read-short conn)))
+  (let [payload (assoc {}
+                       :eid (-read-int conn)
+                       :playername (-read-string-ucs2 conn)
+                       :x (-read-int conn)
+                       :y (-read-int conn)
+                       :z (-read-int conn)
+                       :rotation (-read-byte conn)
+                       :pitch (-read-byte conn)
+                       :currentitem (-read-short conn))
+        entity-data {:eid (:eid payload)
+                     :name (:playername payload)
+                     :holding (item-types (:currentitem payload))
+                     :despawned false}
+        location-data {:x (:x payload)
+                       :y (:y payload)
+                       :z (:z payload)}]
+    (dosync
+      (let [eid (:eid payload)
+            entities (:entities (:world bot))
+            entity (or (let [e (@entities eid)] (when e @e)) (blank-entity))
+            new-loc (merge (:loc entity) location-data)
+            new-entity-data (assoc entity-data :loc new-loc)]
+        ; I'm not sure this is right.  We should probably be altering the entity ref
+        ; if it already exists.
+        (alter entities assoc eid (ref (merge entity new-entity-data)))))
+    payload))
 
 (defn- read-packet-pickupspawn [bot conn]
   (assoc {}
@@ -300,7 +324,7 @@
             entities (:entities (:world bot))
             entity (@entities eid)]
         (when-not entity
-          (alter entities assoc eid (Entity. eid nil false 0.0)))))
+          (alter entities assoc eid (ref (Entity. eid nil nil nil false 0.0))))))
     payload))
 
 (defn- read-packet-entityrelativemove [bot conn]

@@ -20,6 +20,13 @@
 ; eid -> Integer
 ; loc -> Location
 ;
+; name -> String
+;   The name of the player, or nil if this entity is not a player.
+;
+; holding -> Keyword (Item Type)
+;   The type of item this entity is holding, or nil if this entity is not holding
+;   anything.
+;
 ; despawned -> boolean
 ;   True if the entity has been despawned.
 ;
@@ -27,7 +34,7 @@
 ;   something has changed, since otherwise there would be no way to tell
 ;   (despawning would simply remove the object from the entity list
 ;   without modifying it).
-(defrecord Entity [eid loc despawned velocity])
+(defrecord Entity [eid loc name holding despawned velocity])
 
 ; Block
 ;

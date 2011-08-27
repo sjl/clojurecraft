@@ -122,7 +122,7 @@
     ; We need to log in to find out our bot's entity ID, so we delay creation of the
     ; player until then.
     (let [player-id (:eid (login bot username))
-          player (ref (Entity. player-id nil false 0.0))
+          player (ref (Entity. player-id nil username nil false 0.0))
           bot (assoc bot :player player)]
 
       ; Theoretically another connected bot could fill in the player's entity entry
