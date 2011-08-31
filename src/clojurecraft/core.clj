@@ -10,7 +10,7 @@
   (:require (clojurecraft.data))
   (:import [clojurecraft.data Location Entity Block Chunk World Bot])
   (:import (java.net Socket)
-           (java.io DataOutputStream DataInputStream)
+           (java.io DataOutputStream DataInputStream BufferedInputStream BufferedOutputStream)
            (java.util.concurrent LinkedBlockingQueue TimeUnit)))
 
 (def STARTING-LOC (Location. 0 0 0 0 0 0 false))
@@ -108,8 +108,8 @@
 (defn connect [server username]
   (let [username (or username (random-username))
         socket (Socket. (:name server) (:port server))
-        in (DataInputStream. (.getInputStream socket))
-        out (DataOutputStream. (.getOutputStream socket))
+        in (DataInputStream. (BufferedInputStream. (.getInputStream socket)))
+        out (DataOutputStream. (BufferedOutputStream. (.getOutputStream socket)))
         conn (ref {:in in :out out})
         outqueue ^LinkedBlockingQueue (LinkedBlockingQueue.)
         actionqueue (LinkedBlockingQueue.)
