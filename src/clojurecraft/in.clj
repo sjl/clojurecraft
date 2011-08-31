@@ -437,7 +437,7 @@
 
 (defn- -chunk-from-full-data [postdata]
   (let [decompressed-data (-decompress-mapchunk postdata)
-        [types meta light sky] (-decode-mapchunk postdata decompressed-data)] ; Note: These are all byte-array's!
+        [types meta light sky] (-decode-mapchunk postdata decompressed-data)] ; These are all byte-array's!
     (Chunk. types meta light sky)))
 
 (defn- -chunk-from-partial-data [{{chunks :chunks} :world} postdata]
@@ -445,7 +445,7 @@
         y (:y postdata)
         z (:z postdata)
         decompressed-data (-decompress-mapchunk postdata)
-        [types meta light sky] (-decode-mapchunk postdata decompressed-data)  ; Note: These are all byte-array's!
+        [types meta light sky] (-decode-mapchunk postdata decompressed-data)  ; These are all byte-array's!
         chunk-coords (coords-of-chunk-containing x z)
         chunk (force (-get-or-make-chunk chunks chunk-coords))
         start-index (block-index-in-chunk x y z)]
@@ -458,12 +458,12 @@
   (time (let [predata (-read-mapchunk-predata conn)
               postdata (assoc predata :raw-data (-read-bytearray-bare conn (:compressedsize predata)))
               chunk-size (* (:sizex postdata) (:sizey postdata) (:sizez postdata))
-              is-full-chunk (= FULL-CHUNK chunk-size)
               chunk-coords (coords-of-chunk-containing (:x postdata) (:z postdata))]
           (dosync (alter (:chunks (:world bot))
-                         assoc chunk-coords (if is-full-chunk
+                         assoc chunk-coords (if (= FULL-CHUNK chunk-size)
                                               (ref (delay (-chunk-from-full-data postdata)))
-                                              (ref (-chunk-from-partial-data bot postdata))))))))
+                                              (ref (-chunk-from-partial-data bot postdata)))))
+          predata)))
 
 
 

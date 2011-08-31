@@ -37,7 +37,8 @@
 (defn- give-string [username item number]
   (str "/give " username " " item " " number))
 
-(defn- handle-chat [bot message]
+
+(defn handle-chat [bot message]
   (let [matches (re-find WANT-RE (s/lower-case message))]
     (when matches
       (let [item (item-map (get-item matches))
@@ -52,6 +53,7 @@
 
 (defn make-givebot [server username]
   (let [bot (core/connect server username)]
+    (events/add-handler bot :chat #'handle-chat)
     (events/add-handler bot :dead #'handle-dead)
     bot))
 
