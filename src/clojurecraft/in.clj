@@ -30,7 +30,7 @@
 (defn- -read-bytearray-bare [conn size]
   (io!
     (let [ba (byte-array size)]
-         (.read ^DataInputStream (:in @conn) ba 0 size)
+         (.readFully ^DataInputStream (:in @conn) ba 0 size)
          ba)))
 
 (defn- -read-bytearray [conn size]
