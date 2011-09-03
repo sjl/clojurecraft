@@ -58,6 +58,7 @@
                     :turn-to turn-to!
                     :look-to look-to!
                     :respawn respawn!} (:action action))]
+    (println "PERFORMING" (:action action) (:args action))
     (apply performer (:bot action) (:args action))))
 
 

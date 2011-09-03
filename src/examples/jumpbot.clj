@@ -16,6 +16,5 @@
   (let [bot (core/connect server username)]
     (events/add-handler bot :dead #'handle-dead)
     (loops/add-loop bot #'jump 2000 :jump-loop)
-    (Thread/sleep 10000)
     bot))
 

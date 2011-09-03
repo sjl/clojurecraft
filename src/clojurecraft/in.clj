@@ -229,9 +229,9 @@
                      :name (:playername payload)
                      :holding (item-types (:currentitem payload))
                      :despawned false}
-        location-data {:x (:x payload)
-                       :y (:y payload)
-                       :z (:z payload)}]
+        location-data {:x (float (/ (:x payload) 32)) ; These are sent as absolute
+                       :y (float (/ (:y payload) 32)) ; ints, not normal floats.
+                       :z (float (/ (:z payload) 32))}]
     (dosync
       (let [eid (:eid payload)
             entities (:entities (:world bot))
@@ -313,8 +313,11 @@
          :velocityz (-read-short conn)))
 
 (defn- read-packet-entitydestroy [bot conn]
-  (assoc {}
-         :eid (-read-int conn)))
+  (let [payload (assoc {}
+                       :eid (-read-int conn))]
+    (println "KILLING -->" (:eid payload))
+    (dosync (alter (:entities (:world bot)) dissoc (:eid payload)))
+    payload))
 
 (defn- read-packet-entity [bot conn]
   (let [payload (assoc {}
@@ -328,11 +331,21 @@
     payload))
 
 (defn- read-packet-entityrelativemove [bot conn]
-  (assoc {}
-         :eid (-read-int conn)
-         :dx (-read-byte conn)
-         :dy (-read-byte conn)
-         :dz (-read-byte conn)))
+  ; TODO: handle items
+  (let [payload (assoc {}
+                       :eid (-read-int conn)
+                       :dx (float (/ (-read-byte conn) 32))
+                       :dy (float (/ (-read-byte conn) 32))
+                       :dz (float (/ (-read-byte conn) 32)))]
+    (dosync
+      (let [entity (@(:entities (:world bot)) (:eid payload))]
+        (when entity
+          (let [old-loc (:loc @entity)
+                new-loc (merge old-loc {:x (+ (:x old-loc) (:dx payload))
+                                        :y (+ (:y old-loc) (:dy payload))
+                                        :z (+ (:z old-loc) (:dz payload))})]
+            (alter entity assoc :loc new-loc)))))
+    payload))
 
 (defn- read-packet-entitylook [bot conn]
   (assoc {}
@@ -350,13 +363,22 @@
          :pitch (-read-byte conn)))
 
 (defn- read-packet-entityteleport [bot conn]
-  (assoc {}
-         :eid (-read-int conn)
-         :x (-read-int conn)
-         :y (-read-int conn)
-         :z (-read-int conn)
-         :yaw (-read-byte conn)
-         :pitch (-read-byte conn)))
+  ; TODO: record yaw/pitch
+  (let [payload (assoc {}
+                       :eid (-read-int conn)
+                       :x (float (/ (-read-int conn) 32))
+                       :y (float (/ (-read-int conn) 32))
+                       :z (float (/ (-read-int conn) 32))
+                       :yaw (-read-byte conn)
+                       :pitch (-read-byte conn))]
+    (dosync
+      (let [entity (@(:entities (:world bot)) (:eid payload))
+            old-loc (:loc @entity)
+            new-loc (merge old-loc {:x (:x payload)
+                                    :y (:y payload)
+                                    :z (:z payload)})]
+        (alter entity assoc :loc new-loc)))
+    payload))
 
 (defn- read-packet-entitystatus [bot conn]
   (let [payload (assoc {}
@@ -455,15 +477,16 @@
             (replace-array-slice (:sky-light (force @chunk)) start-index sky))))
 
 (defn- read-packet-mapchunk [bot conn]
-  (time (let [predata (-read-mapchunk-predata conn)
-              postdata (assoc predata :raw-data (-read-bytearray-bare conn (:compressedsize predata)))
-              chunk-size (* (:sizex postdata) (:sizey postdata) (:sizez postdata))
-              chunk-coords (coords-of-chunk-containing (:x postdata) (:z postdata))]
-          (dosync (alter (:chunks (:world bot))
-                         assoc chunk-coords (if (= FULL-CHUNK chunk-size)
-                                              (ref (delay (-chunk-from-full-data postdata)))
-                                              (ref (-chunk-from-partial-data bot postdata)))))
-          predata)))
+  (let [predata (-read-mapchunk-predata conn)
+        postdata (assoc predata :raw-data (-read-bytearray-bare conn
+                                                                (:compressedsize predata)))
+        chunk-size (* (:sizex postdata) (:sizey postdata) (:sizez postdata))
+        chunk-coords (coords-of-chunk-containing (:x postdata) (:z postdata))]
+    (dosync (alter (:chunks (:world bot))
+                   assoc chunk-coords (if (= FULL-CHUNK chunk-size)
+                                        (ref (delay (-chunk-from-full-data postdata)))
+                                        (ref (-chunk-from-partial-data bot postdata)))))
+    predata))
 
 
 

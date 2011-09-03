@@ -7,7 +7,9 @@
               (@(:loops bot) loop-id))
     (handle-action-group bot ((deref function) bot))
     (Thread/sleep sleep-ms))
-  (dosync (alter (:loops bot) dissoc loop-id)))
+  (dosync (alter (:loops bot) dissoc loop-id))
+  (println "done - loop -" loop-id)
+  (println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
 
 
 (defn remove-loop [bot loop-id]
