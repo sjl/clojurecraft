@@ -17,7 +17,7 @@
        (abs (- (:z from) (:z to))))))
 
 (defn- toward-single [from to]
-  (if (<= (abs (- from to)) 1)
+  (if (<= (abs (- from to)) 2)
     0
     (if (< from to) 1 -1)))
 
@@ -38,15 +38,13 @@
                      (distance-between bot %2))
                  entities))))
 
+
 ; Loops ----------------------------------------------------------------------------
 (defn follow [bot]
   (when (:loc @(:player bot))
     (let [players (find-other-players bot)
           closest (closest-entity bot players)]
       (when closest
-        (println (:name @(:player bot)) "following" (:name @closest))
-        (println (:loc @(:player bot)))
-        (println (:loc @closest))
         (let [{x :x z :z} (toward bot closest)]
           [(actions/move bot x 0 z)])))))
 
