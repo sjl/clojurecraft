@@ -137,7 +137,7 @@
       (println "connected and logged in")
 
       (println "queueing initial keepalive packet")
-      (.put outqueue [:keepalive {}])
+      (.put outqueue [:keepalive {:keep-alive-id 0}])
 
       (println "starting read handler")
       (.start (Thread. #(input-handler bot)))

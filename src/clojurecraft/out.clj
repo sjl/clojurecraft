@@ -44,8 +44,8 @@
 
 
 ; Writing Packets ------------------------------------------------------------------
-(defn- write-packet-keepalive [conn _]
-  nil)
+(defn- write-packet-keepalive [conn {keep-alive-id :keep-alive-id}]
+  (-write-int conn keep-alive-id))
 
 (defn- write-packet-handshake [conn {username :username}]
   (-write-string-ucs2 conn username))

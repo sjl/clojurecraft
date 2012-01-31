@@ -104,7 +104,8 @@
 
 ; Reading Packets ------------------------------------------------------------------
 (defn- read-packet-keepalive [bot conn]
-  {})
+  (assoc {}
+    :keep-alive-id (-read-int conn)))
 
 (defn- read-packet-handshake [bot conn]
   (assoc {}
@@ -115,7 +116,12 @@
          :eid (-read-int conn)
          :unknown (-read-string-ucs2 conn)
          :seed (-read-long conn)
-         :dimension (-read-byte conn)))
+         :level-type (-read-string-ucs2 conn)
+         :server-mode (-read-int conn)
+         :dimension (-read-byte conn)
+         :difficulty (-read-byte conn)
+         :world-height (-read-byte conn)
+         :max-players (-read-byte conn)))
 
 (defn- read-packet-chat [bot conn]
   (let [payload (assoc {}
@@ -645,6 +651,12 @@
     :statisticid (-read-int conn)
     :amount (-read-byte conn)))
 
+(defn- read-packet-playerlistitem [bot conn]
+  (assoc {}
+    :playername (-read-string-ucs2 conn)
+    :online (-read-bool conn)
+    :ping (-read-short conn)))
+
 (defn- read-packet-disconnectkick [bot conn]
   (assoc {}
     :reason (-read-string-ucs2 conn)))
@@ -702,6 +714,7 @@
                      :updatesign                read-packet-updatesign
                      :mapdata                   read-packet-mapdata
                      :incrementstatistic        read-packet-incrementstatistic
+                     :playerlistitem            read-packet-playerlistitem
                      :disconnectkick            read-packet-disconnectkick})
 
 ; Reading Wrappers -----------------------------------------------------------------
@@ -732,6 +745,7 @@
           (/ 1 0))
         (let [payload (do ((packet-type packet-readers) bot conn))]
           (do
+            (println (str "--PACKET--> " packet-type))
             (when (#{} packet-type)
               (println (str "--PACKET--> " packet-type)))
             [[packet-type payload] prev prev-prev]))))))

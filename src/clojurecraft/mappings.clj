@@ -59,6 +59,7 @@
   0x82 :updatesign
   0x83 :mapdata
   0xC8 :incrementstatistic
+  0xC9 :playerlistitem
   0xFF :disconnectkick
 })
 (def packet-ids (invert packet-types))
