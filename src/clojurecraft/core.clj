@@ -41,7 +41,7 @@
   (read-packet bot nil nil nil)
 
   ; Send login
-  (write-packet bot :login {:version 14 :username username})
+  (write-packet bot :login {:version 23 :username username})
 
   ; Get login
   (get (get (read-packet bot nil nil nil) 0) 1))

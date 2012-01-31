@@ -54,6 +54,11 @@
   (-write-int conn version)
   (-write-string-ucs2 conn username)
   (-write-long conn 0)
+  (-write-string-ucs2 conn "")
+  (-write-int conn 0)
+  (-write-byte conn 0)
+  (-write-byte conn 0)
+  (-write-byte conn 0)
   (-write-byte conn 0))
 
 (defn- write-packet-chat [conn {message :message}]
