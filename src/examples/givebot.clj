@@ -1,5 +1,5 @@
 (ns examples.givebot
-  (:require [clojure.contrib.string :as s])
+  (:require [clojure.string :as s])
   (:require [clojurecraft.core :as core])
   (:require [clojurecraft.events :as events])
   (:require [clojurecraft.actions :as actions]))

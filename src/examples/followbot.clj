@@ -1,5 +1,5 @@
 (ns examples.followbot
-  (:use [clojure.contrib.math :only (abs)])
+  (:use [clojure.math.numeric-tower :only (abs)])
   (:require [clojurecraft.core :as core])
   (:require [clojurecraft.events :as events])
   (:require [clojurecraft.loops :as loops])

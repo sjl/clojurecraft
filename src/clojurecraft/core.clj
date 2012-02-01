@@ -3,7 +3,7 @@
   (:use [clojurecraft.in])
   (:use [clojurecraft.out])
   (:use [clojurecraft.util])
-  (:use [clojure.contrib.pprint :only (pprint)])
+  (:use [clojure.pprint :only (pprint)])
   (:require [clojurecraft.chunks :as chunks])
   (:require [clojurecraft.physics :as physics])
   (:require [clojurecraft.actions :as actions])
@@ -16,7 +16,7 @@
 (def STARTING-LOC (Location. 0 0 0 0 0 0 false))
 
 ; Worlds ---------------------------------------------------------------------------
-(def *worlds* (ref {}))
+(def ^:dynamic *worlds* (ref {}))
 (defn get-world [server]
   (dosync
     (ensure *worlds*)

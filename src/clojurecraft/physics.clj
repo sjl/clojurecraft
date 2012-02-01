@@ -1,7 +1,7 @@
 (ns clojurecraft.physics
   (:use [clojurecraft.mappings])
   (:use [clojurecraft.util])
-  (:use [clojure.contrib.combinatorics :only (cartesian-product)])
+  (:use [clojure.math.combinatorics :only (cartesian-product)])
   (:require [clojurecraft.chunks :as chunks]))
 
 ; TODO: Investigate these.  I'm not convinced.
