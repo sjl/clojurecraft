@@ -29,7 +29,7 @@
   0x17 :addobjectvehicle
   0x18 :mobspawn
   0x19 :entitypainting
-  0x1B :stanceupdate
+  0x1A :experienceorb
   0x1C :entityvelocity
   0x1D :entitydestroy
   0x1E :entity
@@ -40,6 +40,9 @@
   0x26 :entitystatus
   0x27 :attachentity
   0x28 :entitymetadata
+  0x29 :entityeffect
+  0x2A :removeentityeffect
+  0x2B :experience
   0x32 :prechunk
   0x33 :mapchunk
   0x34 :multiblockchange
@@ -56,10 +59,13 @@
   0x68 :windowitems
   0x69 :updateprogressbar
   0x6A :transaction
+  0x6B :creativeinventoryaction
+  0x6C :enchantitem
   0x82 :updatesign
   0x83 :mapdata
   0xC8 :incrementstatistic
   0xC9 :playerlistitem
+  0xFA :pluginmessage
   0xFF :disconnectkick
 })
 (def packet-ids (invert packet-types))

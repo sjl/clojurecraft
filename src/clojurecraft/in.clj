@@ -17,6 +17,20 @@
            (Location. nil nil nil nil nil nil nil)
            nil nil false 0.0))
 
+(def enchantable? #{
+  0x103 0x105 0x15A 0x167
+
+  0x10C 0x10D 0x10E 0x10F 0x122
+  0x110 0x111 0x112 0x113 0x123
+  0x10B 0x100 0x101 0x102 0x124
+  0x114 0x115 0x116 0x117 0x125
+  0x11B 0x11C 0x11D 0x11E 0x126
+
+  0x12A 0x12B 0x12C 0x12D
+  0x12E 0x12F 0x130 0x131
+  0x132 0x133 0x134 0x135
+  0x136 0x137 0x138 0x139
+  0x13A 0x13B 0x13C 0x13D })
 
 ; Reading Data ---------------------------------------------------------------------
 (defn- -read-byte-bare [conn]
@@ -25,6 +39,10 @@
       b)))
 
 (defn- -read-byte [conn]
+  (int (-read-byte-bare conn)))
+
+(defn- -read-byte-unsigned [conn]
+  ; TODO Fix this.
   (int (-read-byte-bare conn)))
 
 (defn- -read-bytearray-bare [conn size]
@@ -101,8 +119,24 @@
                                        :y (-read-int conn)
                                        :z (-read-int conn))))))))))
 
+(defn- -read-slot [conn]
+  (io!
+    (let [data {:id (-read-short conn)}]
+      (if (= (:id data) -1)
+        data ; Empty slot.
+        (let [data (assoc data
+                          :count (-read-byte conn)
+                          :damagemeta (-read-short conn))]
+          (if (not (enchantable? (:id data)))
+            data
+            (let [nbt-length (-read-short conn)
+                  nbt-data (-read-bytearray conn nbt-length)]
+              ; TODO: Actually decompress and store this NBT data.
+              data)))))))
+
 
 ; Reading Packets ------------------------------------------------------------------
+
 (defn- read-packet-keepalive [bot conn]
   (assoc {}
     :keep-alive-id (-read-int conn)))
@@ -116,12 +150,12 @@
          :eid (-read-int conn)
          :unknown (-read-string-ucs2 conn)
          :seed (-read-long conn)
-         :level-type (-read-string-ucs2 conn)
-         :server-mode (-read-int conn)
+         :leveltype (-read-string-ucs2 conn)
+         :servermode (-read-int conn)
          :dimension (-read-byte conn)
          :difficulty (-read-byte conn)
-         :world-height (-read-byte conn)
-         :max-players (-read-byte conn)))
+         :worldheight (-read-byte-unsigned conn)
+         :maxplayers (-read-byte-unsigned conn)))
 
 (defn- read-packet-chat [bot conn]
   (let [payload (assoc {}
@@ -157,14 +191,21 @@
 
 (defn- read-packet-updatehealth [bot conn]
   (let [payload (assoc {}
-                       :health (-read-short conn))]
+                       :health (-read-short conn)
+                       :food (-read-short conn)
+                       :foodsaturation (-read-float conn))]
     (if (<= (:health payload) 0)
       (events/fire-dead bot))
     payload))
 
 (defn- read-packet-respawn [bot conn]
   (assoc {}
-         :world (-read-byte conn)))
+         :world (-read-byte conn)
+         :difficulty (-read-byte conn)
+         :creative (-read-byte conn)
+         :worldheight (-read-short conn)
+         :mapseed (-read-long conn)
+         :leveltype (-read-string-ucs2 conn)))
 
 (defn- read-packet-playerpositionlook [bot conn]
   (let [payload (assoc {}
@@ -195,9 +236,7 @@
          :y (-read-byte conn)
          :z (-read-int conn)
          :direction (-read-byte conn)
-         :id (-read-short conn)
-         :amount (-read-byte conn)
-         :damage (-read-short conn)))
+         :helditem (-read-slot conn)))
 
 (defn- read-packet-holdingchange [bot conn]
   (assoc {}
@@ -274,12 +313,12 @@
                           :x (-read-int conn)
                           :y (-read-int conn)
                           :z (-read-int conn)
-                          :moar (-read-int conn))]
-    (if (> (:moar basepacket) 0)
+                          :throwerid (-read-int conn))]
+    (if (> (:throwerid basepacket) 0)
       (assoc basepacket
-             :unknownx (-read-int conn)
-             :unknowny (-read-int conn)
-             :unknownz (-read-int conn))
+             :speedx (-read-int conn)
+             :speedy (-read-int conn)
+             :speedz (-read-int conn))
       basepacket)))
 
 (defn- read-packet-mobspawn [bot conn]
@@ -302,14 +341,13 @@
          :z (-read-int conn)
          :direction (-read-int conn)))
 
-(defn- read-packet-stanceupdate [bot conn]
+(defn- read-packet-experienceorb [bot conn]
   (assoc {}
-         :unknown1 (-read-float conn)
-         :unknown2 (-read-float conn)
-         :unknown3 (-read-bool conn)
-         :unknown4 (-read-bool conn)
-         :unknown5 (-read-float conn)
-         :unknown6 (-read-float conn)))
+         :eid (-read-int conn)
+         :x (-read-int conn)
+         :y (-read-int conn)
+         :z (-read-int conn)
+         :count (-read-short conn)))
 
 (defn- read-packet-entityvelocity [bot conn]
   (assoc {}
@@ -321,7 +359,6 @@
 (defn- read-packet-entitydestroy [bot conn]
   (let [payload (assoc {}
                        :eid (-read-int conn))]
-    (println "KILLING -->" (:eid payload))
     (dosync (alter (:entities (:world bot)) dissoc (:eid payload)))
     payload))
 
@@ -377,7 +414,7 @@
                        :z (float (/ (-read-int conn) 32))
                        :yaw (-read-byte conn)
                        :pitch (-read-byte conn))]
-    (dosync
+    #_(dosync
       (let [entity (@(:entities (:world bot)) (:eid payload))
             old-loc (:loc @entity)
             new-loc (merge old-loc {:x (:x payload)
@@ -401,6 +438,28 @@
   (assoc {}
          :eid (-read-int conn)
          :metadata (-read-metadata conn)))
+
+(defn- read-packet-entityeffect [bot conn]
+  (let [payload (assoc {}
+                       :eid (-read-int conn)
+                       :effectid (-read-byte conn)
+                       :amplifier (-read-byte conn)
+                       :duration (-read-short conn))]
+    payload))
+
+(defn- read-packet-removeentityeffect [bot conn]
+  (let [payload (assoc {}
+                       :eid (-read-int conn)
+                       :effectid (-read-byte conn))]
+    payload))
+
+(defn- read-packet-experience [bot conn]
+  (let [payload (assoc {}
+                       :experiencebar (-read-float conn)
+                       :level (-read-short conn)
+                       :totalexperience (-read-short conn))]
+    payload))
+
 
 (defn- read-packet-prechunk [bot conn]
   (assoc {}
@@ -568,7 +627,8 @@
 
 (defn- read-packet-newinvalidstate [bot conn]
   (assoc {}
-         :reason (-read-byte conn)))
+         :reason (-read-byte conn)
+         :game-mode (-read-byte conn)))
 
 (defn- read-packet-thunderbolt [bot conn]
   (assoc {}
@@ -582,7 +642,7 @@
   (assoc {}
          :windowid (-read-byte conn)
          :inventorytype (-read-byte conn)
-         :windowtitle (-read-string-utf8 conn)
+         :windowtitle (-read-string-ucs2 conn)
          :numberofslots (-read-byte conn)))
 
 (defn- read-packet-closewindow [bot conn]
@@ -590,30 +650,18 @@
          :windowid (-read-byte conn)))
 
 (defn- read-packet-setslot [bot conn]
-  (let [preiteminfo (assoc {}
-                           :windowid (-read-byte conn)
-                           :slot (-read-short conn)
-                           :itemid (-read-short conn))]
-    (if (= -1 (:itemid preiteminfo))
-      preiteminfo
-      (assoc preiteminfo
-             :itemcount (-read-byte conn)
-             :itemuses (-read-short conn)))))
-
-(defn- -read-packet-windowitems-payloaditem [conn]
-  (let [payload (assoc {} :itemid (-read-short conn))]
-    (if (= (:itemid payload) -1)
-      payload
-      (assoc payload
-        :count (-read-byte conn)
-        :uses (-read-short conn)))))
+  (let [payload (assoc {}
+                       :windowid (-read-byte conn)
+                       :slot (-read-short conn)
+                       :slotdata (-read-slot conn))]
+    payload))
 
 (defn- read-packet-windowitems [bot conn]
   (let [prepayload (assoc {}
                      :windowid (-read-byte conn)
                      :count (-read-short conn))
         items (doall (repeatedly (:count prepayload)
-                                 #(-read-packet-windowitems-payloaditem conn)))]
+                                 #(-read-slot conn)))]
     (assoc prepayload :items items)))
 
 (defn- read-packet-updateprogressbar [bot conn]
@@ -627,6 +675,16 @@
     :windowid (-read-byte conn)
     :actionnumber (-read-short conn)
     :accepted (-read-short conn)))
+
+(defn- read-packet-creativeinventoryaction [bot conn]
+  (assoc {}
+    :slot (-read-short conn)
+    :clickeditem (-read-slot conn)))
+
+(defn- read-packet-enchantitem [bot conn]
+  (assoc {}
+    :windowid (-read-byte conn)
+    :enchantment (-read-byte conn)))
 
 (defn- read-packet-updatesign [bot conn]
   (assoc {}
@@ -657,6 +715,12 @@
     :online (-read-bool conn)
     :ping (-read-short conn)))
 
+(defn- read-packet-pluginmessage [bot conn]
+  (let [predata (assoc {}
+                       :channel (-read-string-ucs2 conn)
+                       :length (-read-short conn))]
+    (assoc predata :data (-read-bytearray conn (:length predata)))))
+
 (defn- read-packet-disconnectkick [bot conn]
   (assoc {}
     :reason (-read-string-ucs2 conn)))
@@ -685,7 +749,7 @@
                      :addobjectvehicle          read-packet-addobjectvehicle
                      :mobspawn                  read-packet-mobspawn
                      :entitypainting            read-packet-entitypainting
-                     :stanceupdate              read-packet-stanceupdate
+                     :experienceorb             read-packet-experienceorb
                      :entityvelocity            read-packet-entityvelocity
                      :entitydestroy             read-packet-entitydestroy
                      :entity                    read-packet-entity
@@ -696,6 +760,9 @@
                      :entitystatus              read-packet-entitystatus
                      :attachentity              read-packet-attachentity
                      :entitymetadata            read-packet-entitymetadata
+                     :entityeffect              read-packet-entityeffect
+                     :removeentityeffect        read-packet-removeentityeffect
+                     :experience                read-packet-experience
                      :prechunk                  read-packet-prechunk
                      :mapchunk                  read-packet-mapchunk
                      :multiblockchange          read-packet-multiblockchange
@@ -711,10 +778,13 @@
                      :windowitems               read-packet-windowitems
                      :updateprogressbar         read-packet-updateprogressbar
                      :transaction               read-packet-transaction
+                     :creativeinventoryaction   read-packet-creativeinventoryaction
+                     :enchantitem               read-packet-enchantitem
                      :updatesign                read-packet-updatesign
                      :mapdata                   read-packet-mapdata
                      :incrementstatistic        read-packet-incrementstatistic
                      :playerlistitem            read-packet-playerlistitem
+                     :pluginmessage             read-packet-pluginmessage
                      :disconnectkick            read-packet-disconnectkick})
 
 ; Reading Wrappers -----------------------------------------------------------------
@@ -745,7 +815,6 @@
           (/ 1 0))
         (let [payload (do ((packet-type packet-readers) bot conn))]
           (do
-            (println (str "--PACKET--> " packet-type))
             (when (#{} packet-type)
               (println (str "--PACKET--> " packet-type)))
             [[packet-type payload] prev prev-prev]))))))
