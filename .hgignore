@@ -6,6 +6,8 @@ pom.xml
 lib
 classes
 build
+target
+checkouts
 /clojurecraft
 *.orig
 bundled

@@ -11,8 +11,7 @@ Or if you don't want to bother you can just download and extract a tarball::
     wget https://bitbucket.org/sjl/clojurecraft/get/tip.tar.gz -O clojurecraft.tar.gz
     tar xzf clojurecraft.tar.gz
 
-Grab the dependencies using Leiningen (Cake will probably work too) and fire up
-a REPL::
+Grab the dependencies using Leiningen 2 and fire up a REPL::
 
     cd clojurecraft
     lein deps

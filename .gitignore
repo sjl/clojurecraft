@@ -4,6 +4,8 @@ pom.xml
 *.war
 lib
 classes
+checkouts
+target
 build
 /clojurecraft
 *.orig
