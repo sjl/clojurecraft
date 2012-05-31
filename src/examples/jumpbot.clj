@@ -18,3 +18,7 @@
     (loops/add-loop bot #'jump 2000 :jump-loop)
     bot))
 
+
+(require '(clojurecraft [core :as core] [actions :as actions]))
+(def bot (make-jumpbot core/minecraft-local "jimmy"))
+(core/disconnect bot)
