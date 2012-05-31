@@ -8,6 +8,7 @@
   (:import [clojurecraft.data Location Entity Chunk])
   (:import (java.util.zip Inflater)))
 
+
 (def FULL-CHUNK (* 16 16 128))
 (def BLANK-CHUNK-ARRAY (byte-array FULL-CHUNK))
 
@@ -31,6 +32,7 @@
   0x132 0x133 0x134 0x135
   0x136 0x137 0x138 0x139
   0x13A 0x13B 0x13C 0x13D })
+
 
 ; Reading Data ---------------------------------------------------------------------
 (defn- -read-byte-bare [conn]
@@ -136,7 +138,6 @@
 
 
 ; Reading Packets ------------------------------------------------------------------
-
 (defn- read-packet-keepalive [bot conn]
   (assoc {}
     :keep-alive-id (-read-int conn)))
@@ -786,6 +787,7 @@
                      :playerlistitem            read-packet-playerlistitem
                      :pluginmessage             read-packet-pluginmessage
                      :disconnectkick            read-packet-disconnectkick})
+
 
 ; Reading Wrappers -----------------------------------------------------------------
 (defn read-packet [bot prev prev-prev prev-prev-prev]
