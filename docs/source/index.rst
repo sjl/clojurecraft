@@ -13,6 +13,9 @@ Check out the :doc:`Quick Start Guide </quickstart>` if you want to poke around.
 * Git Repo: http://github.com/sjl/clojurecraft/
 * Documentation: http://clojurecraft.rtfd.org/
 * Issue Tracker: http://github.com/sjl/clojurecraft/issues/
+* Mailing List: `clojurecraft@librelist.com`_ (send a blank email to subscribe)
+
+.. _clojurecraft@librelist.com: mailto:clojurecraft@librelist.com
 
 Table of Contents
 -----------------
